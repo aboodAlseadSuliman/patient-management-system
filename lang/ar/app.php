@@ -1,0 +1,156 @@
+<?php
+
+return [
+    // ==================== Navigation ====================
+    'nav' => [
+        'dashboard' => 'لوحة التحكم',
+        'patients' => 'المرضى',
+        'visits' => 'الزيارات',
+        'medications' => 'الأدوية',
+        'chronic_diseases' => 'الأمراض المزمنة',
+        'diagnoses' => 'التشخيصات',
+        'abbreviations' => 'الاختصارات الطبية',
+        'users' => 'المستخدمين',
+        'settings' => 'الإعدادات',
+        'reports' => 'التقارير',
+    ],
+
+    // ==================== Models ====================
+    'models' => [
+        'patient' => 'مريض',
+        'patients' => 'المرضى',
+        'visit' => 'زيارة',
+        'visits' => 'الزيارات',
+        'medication' => 'دواء',
+        'medications' => 'الأدوية',
+        'chronic_disease' => 'مرض مزمن',
+        'chronic_diseases' => 'الأمراض المزمنة',
+        'diagnosis' => 'تشخيص',
+        'diagnoses' => 'التشخيصات',
+        'abbreviation' => 'اختصار',
+        'abbreviations' => 'الاختصارات',
+        'user' => 'مستخدم',
+        'users' => 'المستخدمين',
+    ],
+
+    // ==================== Fields - Patient ====================
+    'patient' => [
+        'file_number' => 'رقم الملف',
+        'national_id' => 'رقم الهوية',
+        'full_name' => 'الاسم الكامل',
+        'gender' => 'الجنس',
+        'male' => 'ذكر',
+        'female' => 'أنثى',
+        'date_of_birth' => 'تاريخ الميلاد',
+        'age' => 'العمر',
+        'phone' => 'رقم الجوال',
+        'alternative_phone' => 'رقم بديل',
+        'address' => 'العنوان',
+        'city' => 'المدينة',
+        'area' => 'المنطقة',
+        'notes' => 'ملاحظات',
+        'is_active' => 'نشط',
+        'created_at' => 'تاريخ التسجيل',
+    ],
+
+    // ==================== Fields - Visit ====================
+    'visit' => [
+        'visit_number' => 'رقم الزيارة',
+        'visit_date' => 'تاريخ الزيارة',
+        'visit_type' => 'نوع الزيارة',
+        'first_visit' => 'زيارة أولى',
+        'follow_up' => 'متابعة',
+        'emergency' => 'طارئة',
+        'chief_complaint' => 'الشكاية الرئيسية',
+        'associated_symptoms' => 'الأعراض المرافقة',
+        'evolution' => 'التطور',
+        'triggers' => 'المحرضات',
+        'severity' => 'الخطورة',
+        'vital_signs' => 'العلامات الحيوية',
+        'physical_examination' => 'الفحص السريري',
+        'current_medications' => 'الأدوية الحالية',
+        'previous_surgeries' => 'الجراحات السابقة',
+        'radiology_findings' => 'نتائج الأشعة',
+        'endoscopy_findings' => 'نتائج التنظير',
+        'proposed_treatment' => 'العلاج المقترح',
+        'requested_investigations' => 'الفحوصات المطلوبة',
+        'general_condition' => 'الحالة العامة',
+        'diagnosis' => 'التشخيص',
+        'prescription' => 'الوصفة الطبية',
+        'next_visit_date' => 'موعد المراجعة',
+        'doctor_notes' => 'ملاحظات الطبيب',
+        'is_completed' => 'مكتملة',
+    ],
+
+    // ==================== Fields - Medication ====================
+    'medication' => [
+        'name_ar' => 'الاسم العربي',
+        'name_en' => 'الاسم الإنجليزي',
+        'generic_name' => 'الاسم العلمي',
+        'brand_name' => 'الاسم التجاري',
+        'abbreviation' => 'الاختصار',
+        'dosage_form' => 'الشكل الصيدلاني',
+        'strength' => 'التركيز',
+        'manufacturer' => 'الشركة المصنعة',
+        'description' => 'الوصف',
+        'common_dosage' => 'الجرعة المعتادة',
+        'side_effects' => 'الأعراض الجانبية',
+        'contraindications' => 'موانع الاستخدام',
+        'is_active' => 'نشط',
+    ],
+
+    // ==================== Dosage Forms ====================
+    'dosage_forms' => [
+        'tablet' => 'حبة',
+        'capsule' => 'كبسولة',
+        'syrup' => 'شراب',
+        'injection' => 'حقنة',
+        'cream' => 'كريم',
+        'ointment' => 'مرهم',
+        'drops' => 'نقط',
+        'spray' => 'بخاخ',
+        'inhaler' => 'بخاخ استنشاق',
+        'suppository' => 'تحميلة',
+        'patch' => 'لصقة',
+        'other' => 'أخرى',
+    ],
+
+    // ==================== Actions ====================
+    'actions' => [
+        'create' => 'إضافة',
+        'edit' => 'تعديل',
+        'view' => 'عرض',
+        'delete' => 'حذف',
+        'save' => 'حفظ',
+        'cancel' => 'إلغاء',
+        'search' => 'بحث',
+        'filter' => 'تصفية',
+        'export' => 'تصدير',
+        'import' => 'استيراد',
+        'print' => 'طباعة',
+        'new_visit' => 'زيارة جديدة',
+        'view_patient' => 'عرض المريض',
+    ],
+
+    // ==================== Messages ====================
+    'messages' => [
+        'created' => 'تم الإنشاء بنجاح',
+        'updated' => 'تم التحديث بنجاح',
+        'deleted' => 'تم الحذف بنجاح',
+        'no_records' => 'لا توجد سجلات',
+        'confirm_delete' => 'هل أنت متأكد من الحذف؟',
+    ],
+
+    // ==================== Sections ====================
+    'sections' => [
+        'basic_info' => 'البيانات الأساسية',
+        'contact_info' => 'معلومات الاتصال',
+        'address' => 'العنوان',
+        'medical_info' => 'المعلومات الطبية',
+        'chronic_diseases' => 'الأمراض المزمنة',
+        'permanent_medications' => 'الأدوية الدائمة',
+        'visits_history' => 'سجل الزيارات',
+        'attachments' => 'المرفقات',
+        'notes' => 'ملاحظات',
+    ],
+];

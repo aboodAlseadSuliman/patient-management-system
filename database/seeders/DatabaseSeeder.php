@@ -17,9 +17,22 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // User::factory()->create([
+        //     'name' => 'Test User',
+        //     'email' => 'test@example.com',
+        // ]);
+
+        $this->call([
+            RoleSeeder::class,              // 1. أولاً
+            UserSeeder::class,              // 2. ثانياً (يحتاج roles)
+            ChronicDiseaseSeeder::class,    // 3. القواميس
+            MedicationSeeder::class,        // 4. القواميس
+            DiagnosisSeeder::class,         // 5. القواميس
+            MedicalAbbreviationSeeder::class, // 6. القواميس
+            PatientSeeder::class,           // 7. المرضى (يحتاج users + قواميس)
+            VisitSeeder::class,             // 8. أخيراً (يحتاج patients)
         ]);
+
+        $this->command->info('✅ تم إضافة جميع البيانات التجريبية بنجاح!');
     }
 }

@@ -1,0 +1,18 @@
+[90m= [39m[
+    [
+      "[34mname[39m" => "[32madmin[39m",
+      "[34mdisplay_name[39m" => "[32mمدير[39m",
+      "[34mis_active[39m" => [36mtrue[39m,
+    ],
+    [
+      "[34mname[39m" => "[32mdoctor[39m",
+      "[34mdisplay_name[39m" => "[32mطبيب[39m",
+      "[34mis_active[39m" => [36mtrue[39m,
+    ],
+    [
+      "[34mname[39m" => "[32mstaff[39m",
+      "[34mdisplay_name[39m" => "[32mموظف[39m",
+      "[34mis_active[39m" => [36mtrue[39m,
+    ],
+  ]
+

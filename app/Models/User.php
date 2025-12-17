@@ -2,47 +2,101 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role_id',
+        'phone',
+        'is_active',
+        'last_login_at',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'last_login_at' => 'datetime',
+        'is_active' => 'boolean',
+        'password' => 'hashed',
+    ];
+
+    // ==================== Filament ====================
+
+    public function canAccessPanel(Panel $panel): bool
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return in_array($this->role->name, ['admin', 'doctor']) && $this->is_active;
+    }
+
+    // ==================== Relationships ====================
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function createdPatients()
+    {
+        return $this->hasMany(Patient::class, 'created_by');
+    }
+
+    public function createdVisits()
+    {
+        return $this->hasMany(Visit::class, 'created_by');
+    }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+
+    // ==================== Role Checks ====================
+
+    public function isAdmin(): bool
+    {
+        return $this->role->name === 'admin';
+    }
+
+    public function isDoctor(): bool
+    {
+        return $this->role->name === 'doctor';
+    }
+
+    public function isDoctorOrAdmin(): bool
+    {
+        return in_array($this->role->name, ['admin', 'doctor']);
+    }
+
+    // ==================== Scopes ====================
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeDoctors($query)
+    {
+        return $query->whereHas('role', function ($q) {
+            $q->where('name', 'doctor');
+        });
+    }
+
+    public function scopeAdmins($query)
+    {
+        return $query->whereHas('role', function ($q) {
+            $q->where('name', 'admin');
+        });
     }
 }
