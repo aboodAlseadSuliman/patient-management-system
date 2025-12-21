@@ -62,6 +62,29 @@ class Patient extends Model
         return "{$years} سنة و {$months} شهر";
     }
 
+
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        // عند إنشاء مريض جديد
+        static::creating(function ($patient) {
+            if (auth()->check()) {
+                $patient->created_by = auth()->id();
+                $patient->updated_by = auth()->id();
+            }
+        });
+
+        // عند تحديث مريض
+        static::updating(function ($patient) {
+            if (auth()->check()) {
+                $patient->updated_by = auth()->id();
+            }
+        });
+    }
+
+
     // ==================== Relationships ====================
 
     public function visits()

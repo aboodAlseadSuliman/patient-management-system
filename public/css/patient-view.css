@@ -1,0 +1,380 @@
+/* Header Cards */
+.patient-header-card {
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+}
+
+.patient-header-card .card-label {
+    font-size: 10px;
+    margin-bottom: 2px;
+}
+
+.patient-header-card .card-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.patient-card-icon svg {
+    width: 24px !important;
+    height: 24px !important;
+}
+
+/* جدول المريض */
+.patient-info-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #e5e7eb;
+    min-width: 1000px;
+    margin-bottom: 2px;
+    /* لضمان scroll على الموبايل */
+}
+
+.dark .patient-info-table {
+    border-color: #374151;
+}
+
+.patient-info-table th {
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: #374151;
+    background-color: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+.dark .patient-info-table th {
+    color: #d1d5db;
+    background-color: #1f2937;
+    border-color: #374151;
+}
+
+.patient-info-table td {
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    font-size: 18px;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+}
+
+.dark .patient-info-table td {
+    color: #f9fafb;
+    border-color: #374151;
+}
+
+/* Badge */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge svg {
+    width: 12px !important;
+    height: 12px !important;
+}
+
+/* Stats */
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.stat-label {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.dark .stat-label {
+    color: #9ca3af;
+}
+
+/* Section */
+.info-section {
+    background: white;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.dark .info-section {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+.section-title {
+    padding: 0.75rem 1rem;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dark .section-title {
+    background: #111827;
+    border-color: #374151;
+    color: #f9fafb;
+}
+
+.section-title svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+/* Colors */
+.text-blue {
+    color: #3b82f6;
+}
+
+.text-green {
+    color: #22c55e;
+}
+
+.text-orange {
+    color: #f97316;
+}
+
+.icon-blue {
+    color: #3b82f6;
+}
+
+.dark .text-blue {
+    color: #60a5fa;
+}
+
+.dark .text-green {
+    color: #4ade80;
+}
+
+.dark .text-orange {
+    color: #fb923c;
+}
+
+/* ========================================
+   📱 Scroll Container
+   ======================================== */
+
+.overflow-x-auto {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+/* Custom Scrollbar */
+.overflow-x-auto::-webkit-scrollbar {
+    height: 10px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 5px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 5px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Dark mode scrollbar */
+.dark .overflow-x-auto::-webkit-scrollbar-track {
+    background: #1e293b;
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-thumb {
+    background: #475569;
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+/* ========================================
+   📱 تحسينات الموبايل والتابلت
+   ======================================== */
+
+/* تابلت (< 1024px) */
+@media (max-width: 1024px) {
+    .patient-header-card {
+        padding: 0.625rem;
+    }
+
+    .patient-header-card .card-label {
+        font-size: 10px;
+    }
+
+    .patient-header-card .card-value {
+        font-size: 1.125rem;
+    }
+
+    .patient-card-icon svg {
+        width: 22px !important;
+        height: 22px !important;
+    }
+
+    /* الجدول يبقى 14px */
+    .patient-info-table {
+        min-width: 900px;
+    }
+}
+
+/* موبايل (< 768px) */
+@media (max-width: 768px) {
+
+    /* Cards أصغر قليلاً */
+    .patient-header-card {
+        padding: 0.5rem;
+    }
+
+    .patient-header-card .card-label {
+        font-size: 9px;
+    }
+
+    .patient-header-card .card-value {
+        font-size: 1rem;
+    }
+
+    /* الجدول يبقى 14px - فقط padding أقل */
+    .patient-info-table th,
+    .patient-info-table td {
+        padding: 0.5rem 0.375rem;
+        font-size: 14px;
+        /* ثابت 14px */
+    }
+
+    .patient-info-table {
+        min-width: 1000px;
+        /* أعرض للموبايل لضمان scroll */
+    }
+
+    /* Stats */
+    .stat-value {
+        font-size: 1.375rem;
+    }
+
+    /* Badge */
+    .status-badge {
+        font-size: 11px;
+    }
+}
+
+/* موبايل صغير (< 640px) */
+@media (max-width: 640px) {
+
+    /* Cards مضغوطة */
+    .patient-header-card {
+        padding: 0.5rem;
+    }
+
+    .patient-header-card .card-label {
+        font-size: 8px;
+    }
+
+    .patient-header-card .card-value {
+        font-size: 0.875rem;
+    }
+
+    .patient-card-icon svg {
+        width: 18px !important;
+        height: 18px !important;
+    }
+
+    /* الجدول يبقى 14px */
+    .patient-info-table th,
+    .patient-info-table td {
+        padding: 0.5rem 0.25rem;
+        font-size: 14px;
+        /* ثابت 14px */
+    }
+
+    .patient-info-table {
+        min-width: 1100px;
+        /* scroll أكثر */
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+    }
+
+    .section-title {
+        padding: 0.5rem 0.75rem;
+        font-size: 13px;
+    }
+
+    .info-section {
+        margin-bottom: 0.75rem;
+    }
+}
+
+/* موبايل صغير جداً (< 480px) */
+@media (max-width: 480px) {
+    .patient-header-card .card-label {
+        font-size: 7px;
+    }
+
+    .patient-header-card .card-value {
+        font-size: 0.75rem;
+    }
+
+    /* الجدول يبقى 14px حتى على الشاشات الصغيرة جداً */
+    .patient-info-table {
+        min-width: 1200px;
+    }
+}
+
+/* ========================================
+   📌 تحسينات إضافية
+   ======================================== */
+
+/* Shadow للجدول عند Scroll */
+.overflow-x-auto {
+    position: relative;
+}
+
+.overflow-x-auto::before,
+.overflow-x-auto::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.overflow-x-auto::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.8), transparent);
+}
+
+.overflow-x-auto::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(255, 255, 255, 0.8), transparent);
+}
+
+.dark .overflow-x-auto::before {
+    background: linear-gradient(to right, rgba(31, 41, 55, 0.8), transparent);
+}
+
+.dark .overflow-x-auto::after {
+    background: linear-gradient(to left, rgba(31, 41, 55, 0.8), transparent);
+}
+
+/* تحسين touch على الموبايل */
+.patient-info-table {
+    touch-action: pan-x;
+}

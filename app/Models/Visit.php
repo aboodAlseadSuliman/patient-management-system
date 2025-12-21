@@ -45,6 +45,9 @@ class Visit extends Model
         'is_completed' => 'boolean',
     ];
 
+
+
+
     // ==================== Relationships ====================
 
     public function patient()
@@ -126,6 +129,21 @@ class Visit extends Model
         static::creating(function ($visit) {
             if (!$visit->visit_number) {
                 $visit->visit_number = self::generateVisitNumber($visit->patient_id);
+            }
+        });
+
+
+
+        static::creating(function ($visit) {
+            if (auth()->check()) {
+                $visit->created_by = auth()->id();
+                $visit->updated_by = auth()->id();
+            }
+        });
+
+        static::updating(function ($visit) {
+            if (auth()->check()) {
+                $visit->updated_by = auth()->id();
             }
         });
     }

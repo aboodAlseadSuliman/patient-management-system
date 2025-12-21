@@ -62,14 +62,7 @@ class PatientForm
                     ->label('ملاحظات')
                     ->default(null)
                     ->columnSpanFull(),
-                TextInput::make('created_by')
-                    ->label('أنشئ بواسطة')
-                    ->numeric()
-                    ->default(null),
-                TextInput::make('updated_by')
-                    ->label('تم التحديث بواسطة')
-                    ->numeric()
-                    ->default(null),
+
             ]);
     }
 }
