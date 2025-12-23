@@ -21,6 +21,9 @@ use Filament\Tables\Filters\SelectFilter;
 
 
 
+
+
+
 class VisitsTable
 {
     public static function configure(Table $table): Table
@@ -62,14 +65,15 @@ class VisitsTable
                     ->label('نوع الزيارة')
                     ->badge()
                     ->formatStateUsing(fn(?string $state): string => match ($state) {
-                        'first' => 'أولى',
-                        'followup' => 'متابعة',
+                        'first_visit' => 'زيارة أولى',
+                        'follow_up' => 'متابعة',
                         'emergency' => 'طوارئ',
                         default => $state ?? '-',
                     })
+
                     ->color(fn(?string $state): string => match ($state) {
-                        'first' => 'success',
-                        'followup' => 'info',
+                        'first_visit' => 'success',
+                        'follow_up' => 'info',
                         'emergency' => 'danger',
                         default => 'gray',
                     }),
@@ -101,13 +105,13 @@ class VisitsTable
                     ->boolean()
                     ->sortable(),
 
-                // أنشأها - عرض اسم المستخدم
+                // ⭐ أنشأها - عرض اسم المستخدم
                 TextColumn::make('creator.name')
                     ->label('أنشأها')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                // آخر تحديث - عرض اسم المستخدم
+                // ⭐ آخر تحديث - عرض اسم المستخدم
                 TextColumn::make('updater.name')
                     ->label('آخر تحديث')
                     ->sortable()
@@ -143,8 +147,8 @@ class VisitsTable
                 SelectFilter::make('visit_type')
                     ->label('نوع الزيارة')
                     ->options([
-                        'first' => 'أولى',
-                        'followup' => 'متابعة',
+                        'first_visit' => 'زيارة أولى',
+                        'follow_up' => 'متابعة',
                         'emergency' => 'طوارئ',
                     ]),
 

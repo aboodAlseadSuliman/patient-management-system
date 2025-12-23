@@ -149,6 +149,173 @@
             </div>
         </div>
 
+        {{-- بعد جدول الإحصائيات --}}
+        {{-- ==================== الأمراض المزمنة ==================== --}}
+        <div class="lg:col-span-4 mt-4">
+            <div class="info-section">
+                <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <svg class="icon-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            style="width: 20px; height: 20px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        <span>🩺 الأمراض المزمنة ({{ $patient->activeChronicDiseases()->count() }})</span>
+                    </div>
+
+                    {{ ($this->addChronicDiseaseAction)(['patient_id' => $patient->id]) }}
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="patient-info-table">
+                        <thead>
+                            <tr>
+                                <th>المرض</th>
+                                <th>تاريخ التشخيص</th>
+                                <th>ملاحظات</th>
+                                <th>الحالة</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($patient->activeChronicDiseases as $disease)
+                            <tr>
+                                <td class="stat-value text-blue">{{ $disease->name_ar }}</td>
+                                <td>
+                                    @php
+                                    $date = $disease->pivot->diagnosis_date;
+                                    if ($date) {
+                                    echo is_string($date) ? $date : $date->format('Y-m-d');
+                                    } else {
+                                    echo '-';
+                                    }
+                                    @endphp
+                                </td>
+                                <td>{{ Str::limit($disease->pivot->notes, 40) ?? '-' }}</td>
+                                <td>
+                                    @if($disease->pivot->is_active)
+                                    <span
+                                        class="status-badge bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">نشط</span>
+                                    @else
+                                    <span
+                                        class="status-badge bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400">غير
+                                        نشط</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                                        <button wire:click="deleteChronicDisease({{ $disease->id }})"
+                                            wire:confirm="هل أنت متأكد من الحذف؟" class="visit-action-btn"
+                                            style="padding: 0.25rem 0.5rem; color: #dc2626; border-color: #fca5a5;">
+                                            حذف
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 2rem; color: #6b7280;">
+                                    لا توجد أمراض مزمنة مسجلة
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {{-- ==================== الأدوية الدائمة ==================== --}}
+        <div class="lg:col-span-4 mt-4">
+            <div class="info-section">
+                <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <svg class="icon-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            style="width: 20px; height: 20px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        </svg>
+                        <span>💊 الأدوية الدائمة ({{ $patient->activePermanentMedications()->count() }})</span>
+                    </div>
+
+                    {{ ($this->addPermanentMedicationAction)(['patient_id' => $patient->id]) }}
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="patient-info-table">
+                        <thead>
+                            <tr>
+                                <th>الدواء</th>
+                                <th>الجرعة</th>
+                                <th>التكرار</th>
+                                <th>الطريق</th>
+                                <th>تاريخ البدء</th>
+                                <th>الحالة</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($patient->activePermanentMedications as $medication)
+                            <tr>
+                                <td class="stat-value text-orange">{{ $medication->name_ar }}</td>
+                                <td>{{ $medication->pivot->dosage ?? '-' }}</td>
+                                <td>{{ $medication->pivot->frequency ?? '-' }}</td>
+                                <td>
+                                    @php
+                                    $route = $medication->pivot->route;
+                                    echo match($route) {
+                                    'oral' => 'فموي',
+                                    'injection' => 'حقن',
+                                    'topical' => 'موضعي',
+                                    'inhalation' => 'استنشاق',
+                                    'rectal' => 'شرجي',
+                                    'sublingual' => 'تحت اللسان',
+                                    'transdermal' => 'عبر الجلد',
+                                    default => $route ?? '-',
+                                    };
+                                    @endphp
+                                </td>
+                                <td>
+                                    @php
+                                    $date = $medication->pivot->start_date;
+                                    if ($date) {
+                                    echo is_string($date) ? $date : $date->format('Y-m-d');
+                                    } else {
+                                    echo '-';
+                                    }
+                                    @endphp
+                                </td>
+                                <td>
+                                    @if($medication->pivot->is_active)
+                                    <span
+                                        class="status-badge bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">نشط</span>
+                                    @else
+                                    <span
+                                        class="status-badge bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400">موقوف</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                                        <button wire:click="deletePermanentMedication({{ $medication->id }})"
+                                            wire:confirm="هل أنت متأكد من الحذف؟" class="visit-action-btn"
+                                            style="padding: 0.25rem 0.5rem; color: #dc2626; border-color: #fca5a5;">
+                                            حذف
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 2rem; color: #6b7280;">
+                                    لا توجد أدوية دائمة مسجلة
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
     </div>
 

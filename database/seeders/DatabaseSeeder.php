@@ -31,6 +31,8 @@ class DatabaseSeeder extends Seeder
             MedicalAbbreviationSeeder::class, // 6. القواميس
             PatientSeeder::class,           // 7. المرضى (يحتاج users + قواميس)
             VisitSeeder::class,             // 8. أخيراً (يحتاج patients)
+            ImagingStudySeeder::class,
+            LabTestSeeder::class,
         ]);
 
         $this->command->info('✅ تم إضافة جميع البيانات التجريبية بنجاح!');

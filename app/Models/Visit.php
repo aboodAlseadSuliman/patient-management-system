@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\LabTest;
+use App\Models\ImagingStudy;
+
 
 class Visit extends Model
 {
@@ -36,6 +39,7 @@ class Visit extends Model
         'is_completed',
         'created_by',
         'updated_by',
+
     ];
 
     protected $casts = [
@@ -43,6 +47,7 @@ class Visit extends Model
         'next_visit_date' => 'date',
         'vital_signs' => 'array',
         'is_completed' => 'boolean',
+
     ];
 
 
@@ -55,10 +60,21 @@ class Visit extends Model
         return $this->belongsTo(Patient::class);
     }
 
-    public function doctor()
+
+    public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    // public function doctor()
+    // {
+    //     return $this->belongsTo(User::class, 'created_by');
+    // }
 
     public function medications()
     {
@@ -122,6 +138,33 @@ class Visit extends Model
 
     // ==================== Boot ====================
 
+    // protected static function boot()
+    // {
+    //     parent::boot();
+
+    //     static::creating(function ($visit) {
+    //         if (!$visit->visit_number) {
+    //             $visit->visit_number = self::generateVisitNumber($visit->patient_id);
+    //         }
+    //     });
+
+
+
+    //     static::creating(function ($visit) {
+    //         if (auth()->check()) {
+    //             $visit->created_by = auth()->id();
+    //             $visit->updated_by = auth()->id();
+    //         }
+    //     });
+
+    //     static::updating(function ($visit) {
+    //         if (auth()->check()) {
+    //             $visit->updated_by = auth()->id();
+    //         }
+    //     });
+    // }
+
+
     protected static function boot()
     {
         parent::boot();
@@ -130,11 +173,7 @@ class Visit extends Model
             if (!$visit->visit_number) {
                 $visit->visit_number = self::generateVisitNumber($visit->patient_id);
             }
-        });
 
-
-
-        static::creating(function ($visit) {
             if (auth()->check()) {
                 $visit->created_by = auth()->id();
                 $visit->updated_by = auth()->id();
@@ -146,5 +185,19 @@ class Visit extends Model
                 $visit->updated_by = auth()->id();
             }
         });
+    }
+
+    public function labTests()
+    {
+        return $this->belongsToMany(LabTest::class, 'visit_lab_tests')
+            ->withPivot(['result', 'notes', 'test_date', 'is_normal'])
+            ->withTimestamps();
+    }
+
+    public function imagingStudies()
+    {
+        return $this->belongsToMany(ImagingStudy::class, 'visit_imaging_studies')
+            ->withPivot(['findings', 'impression', 'study_date', 'notes'])
+            ->withTimestamps();
     }
 }
