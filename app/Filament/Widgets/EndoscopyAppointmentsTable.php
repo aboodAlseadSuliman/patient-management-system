@@ -14,6 +14,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\CreateAction;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Widgets\TableWidget as BaseWidget;
 
@@ -100,50 +101,59 @@ class EndoscopyAppointmentsTable extends BaseWidget
                     ->toggleable(),
             ])
             ->filters([
-                Filter::make('today')
-                    ->label('اليوم')
-                    ->query(fn(Builder $query) => $query->whereDate('appointment_date', today())),
+                SelectFilter::make('date_filter')
+                    ->label('التاريخ')
+                    ->options([
+                        'today' => 'اليوم',
+                        'tomorrow' => 'غداً',
+                        'this_week' => 'هذا الأسبوع',
+                        'next_week' => 'الأسبوع القادم',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        return match ($data['value'] ?? null) {
+                            'today' => $query->whereDate('appointment_date', today()),
+                            'tomorrow' => $query->whereDate('appointment_date', today()->addDay()),
+                            'this_week' => $query->whereBetween('appointment_date', [
+                                now()->startOfWeek(),
+                                now()->endOfWeek()
+                            ]),
+                            'next_week' => $query->whereBetween('appointment_date', [
+                                now()->addWeek()->startOfWeek(),
+                                now()->addWeek()->endOfWeek()
+                            ]),
+                            default => $query,
+                        };
+                    }),
 
-                Filter::make('tomorrow')
-                    ->label('غداً')
-                    ->query(fn(Builder $query) => $query->whereDate('appointment_date', today()->addDay())),
-
-                Filter::make('this_week')
-                    ->label('هذا الأسبوع')
-                    ->query(fn(Builder $query) => $query->whereBetween('appointment_date', [
-                        now()->startOfWeek(),
-                        now()->endOfWeek()
-                    ])),
-
-                Filter::make('next_week')
-                    ->label('الأسبوع القادم')
-                    ->query(fn(Builder $query) => $query->whereBetween('appointment_date', [
-                        now()->addWeek()->startOfWeek(),
-                        now()->addWeek()->endOfWeek()
-                    ])),
+                SelectFilter::make('status')
+                    ->label('الحالة')
+                    ->options([
+                        'scheduled' => 'مجدول',
+                        'confirmed' => 'مؤكد',
+                    ]),
             ])
             ->recordActions([
                 // ActionGroup::make([
-                    ViewAction::make('view')
-                        ->label('عرض')
-                        ->icon('heroicon-o-eye')
-                        ->color('info')
-                        ->url(fn($record) => route('filament.admin.resources.appointments.view', $record)),
+                ViewAction::make('view')
+                    ->label('عرض')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->url(fn($record) => route('filament.admin.resources.appointments.view', $record)),
 
-                    EditAction::make()
-                        ->label('تعديل')
-                        ->icon('heroicon-o-pencil')
-                        ->color('warning')
-                        ->url(fn($record) => route('filament.admin.resources.appointments.edit', $record)),
+                EditAction::make()
+                    ->label('تعديل')
+                    ->icon('heroicon-o-pencil')
+                    ->color('warning')
+                    ->url(fn($record) => route('filament.admin.resources.appointments.edit', $record)),
 
-                    DeleteAction::make()
-                        ->label('حذف')
-                        ->icon('heroicon-o-trash')
-                        ->requiresConfirmation()
-                        ->modalHeading('حذف الموعد')
-                        ->modalDescription('هل أنت متأكد من حذف هذا الموعد؟')
-                        ->modalSubmitActionLabel('نعم، احذف')
-                        ->modalCancelActionLabel('إلغاء'),
+                DeleteAction::make()
+                    ->label('حذف')
+                    ->icon('heroicon-o-trash')
+                    ->requiresConfirmation()
+                    ->modalHeading('حذف الموعد')
+                    ->modalDescription('هل أنت متأكد من حذف هذا الموعد؟')
+                    ->modalSubmitActionLabel('نعم، احذف')
+                    ->modalCancelActionLabel('إلغاء'),
                 // ])
                 //     ->label('العمليات')
                 //     ->icon('heroicon-o-ellipsis-vertical')
