@@ -29,10 +29,14 @@ class DatabaseSeeder extends Seeder
             MedicationSeeder::class,        // 4. القواميس
             DiagnosisSeeder::class,         // 5. القواميس
             MedicalAbbreviationSeeder::class, // 6. القواميس
+            AppointmentTypeSeeder::class, // انواع الزيارات مناظير / عيادة /مشفى
+
             PatientSeeder::class,           // 7. المرضى (يحتاج users + قواميس)
             VisitSeeder::class,             // 8. أخيراً (يحتاج patients)
             ImagingStudySeeder::class,
             LabTestSeeder::class,
+            AppointmentSeeder::class, // المواعيد
+
         ]);
 
         $this->command->info('✅ تم إضافة جميع البيانات التجريبية بنجاح!');
