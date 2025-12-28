@@ -63,7 +63,7 @@ class AdminPanelProvider extends PanelProvider
                 HospitalAppointmentsTable::class,
                 EndoscopyAppointmentsTable::class,
                 ClinicAppointmentsTable::class,
-            ]);
-        // ->viteTheme('resources/css/filament/admin/theme.css');
+            ])
+            ->viteTheme('resources/css/filament/admin/theme.css');
     }
 }
