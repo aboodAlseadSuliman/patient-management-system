@@ -53,13 +53,41 @@ class AppointmentForm
                             ->label('تاريخ الموعد')
                             ->required()
                             ->default(now())
-                            ->minDate(now())
+                            ->minDate(today())
+                            ->live()
                             ->columnSpan(2),
 
                         TimePicker::make('appointment_time')
                             ->label('وقت الموعد')
                             ->required()
                             ->seconds(false)
+                            ->live()
+                            ->rules([
+                                fn ($get) => function (string $attribute, $value, $fail) use ($get) {
+                                    $appointmentDate = $get('appointment_date');
+
+                                    if (!$appointmentDate || !$value) {
+                                        return;
+                                    }
+
+                                    // استخدام المنطقة الزمنية من إعدادات التطبيق
+                                    $timezone = config('app.timezone', 'UTC');
+                                    $now = \Carbon\Carbon::now($timezone);
+                                    $today = $now->toDateString();
+
+                                    // التحقق من أن التاريخ هو تاريخ اليوم
+                                    $selectedDate = \Carbon\Carbon::parse($appointmentDate)->toDateString();
+
+                                    if ($selectedDate === $today) {
+                                        $currentTime = $now->addMinute();
+                                        $selectedTime = \Carbon\Carbon::createFromFormat('H:i', $value, $timezone);
+
+                                        if ($selectedTime->lessThan($currentTime->setDate($selectedTime->year, $selectedTime->month, $selectedTime->day))) {
+                                            $fail('يجب أن يكون وقت الموعد بعد الوقت الحالي (' . $now->format('h:i A') . ') على الأقل بدقيقة واحدة.');
+                                        }
+                                    }
+                                },
+                            ])
                             ->columnSpan(1),
 
                         TextInput::make('duration')

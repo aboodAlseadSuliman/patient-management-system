@@ -172,7 +172,14 @@ class ClinicAppointmentsTable extends BaseWidget
             // ->recordUrl(fn($record) => route('filament.admin.resources.appointments.view', $record))
             ->emptyStateHeading('لا توجد مواعيد عيادة قادمة')
             ->emptyStateDescription('جميع المواعيد مكتملة أو لا توجد مواعيد مجدولة')
-            ->emptyStateIcon('heroicon-o-beaker')
+            ->emptyStateIcon('heroicon-o-building-office')
+            ->emptyStateActions([
+                Action::make('create')
+                    ->label('إضافة موعد جديد')
+                    ->icon('heroicon-o-plus')
+                    ->url(route('filament.admin.resources.appointments.create'))
+                    ->button(),
+            ])
             ->striped()
             ->paginated([10, 25, 50])
             ->defaultPaginationPageOption(10);
