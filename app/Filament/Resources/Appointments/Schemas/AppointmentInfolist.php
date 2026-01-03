@@ -24,7 +24,7 @@ class AppointmentInfolist
                             ->color('primary')
                             ->columnSpan(2),
 
-                        TextEntry::make('appointment_type.name_ar')
+                        TextEntry::make('appointmentType.name_ar')
                             ->label('نوع الموعد')
                             ->badge()
                             ->color('info')
@@ -156,56 +156,56 @@ class AppointmentInfolist
                     ->collapsed()
                     ->icon('heroicon-m-banknotes'),
 
-                Section::make('ملاحظات الطبيب')
-                    ->schema([
-                        TextEntry::make('doctor_notes')
-                            ->label('ملاحظات الطبيب')
-                            ->icon('heroicon-m-clipboard-document-check')
-                            ->placeholder('لا توجد ملاحظات من الطبيب')
-                            ->html()
-                            ->color('success')
-                            ->columnSpanFull(),
-                    ])
-                    ->collapsible()
-                    ->collapsed()
-                    ->icon('heroicon-m-clipboard-document-check'),
+                // Section::make('ملاحظات الطبيب')
+                //     ->schema([
+                //         TextEntry::make('doctor_notes')
+                //             ->label('ملاحظات الطبيب')
+                //             ->icon('heroicon-m-clipboard-document-check')
+                //             ->placeholder('لا توجد ملاحظات من الطبيب')
+                //             ->html()
+                //             ->color('success')
+                //             ->columnSpanFull(),
+                //     ])
+                //     ->collapsible()
+                //     ->collapsed()
+                //     ->icon('heroicon-m-clipboard-document-check'),
 
-                Section::make('معلومات إضافية')
-                    ->schema([
-                        TextEntry::make('visit.visit_number')
-                            ->label('رقم الزيارة المرتبطة')
-                            ->icon('heroicon-m-hashtag')
-                            ->badge()
-                            ->color('primary')
-                            ->placeholder('لا توجد زيارة مرتبطة')
-                            ->visible(fn($record) => $record->visit_id !== null),
+                // Section::make('معلومات إضافية')
+                //     ->schema([
+                //         TextEntry::make('visit.visit_number')
+                //             ->label('رقم الزيارة المرتبطة')
+                //             ->icon('heroicon-m-hashtag')
+                //             ->badge()
+                //             ->color('primary')
+                //             ->placeholder('لا توجد زيارة مرتبطة')
+                //             ->visible(fn($record) => $record->visit_id !== null),
 
-                        TextEntry::make('visit.visit_date')
-                            ->label('تاريخ الزيارة')
-                            ->icon('heroicon-m-calendar')
-                            ->date('Y-m-d')
-                            ->placeholder('-')
-                            ->visible(fn($record) => $record->visit_id !== null),
+                //         TextEntry::make('visit.visit_date')
+                //             ->label('تاريخ الزيارة')
+                //             ->icon('heroicon-m-calendar')
+                //             ->date('Y-m-d')
+                //             ->placeholder('-')
+                //             ->visible(fn($record) => $record->visit_id !== null),
 
-                        IconEntry::make('reminder_sent')
-                            ->label('تم إرسال التذكير')
-                            ->boolean()
-                            ->trueIcon('heroicon-m-check-circle')
-                            ->falseIcon('heroicon-m-x-circle')
-                            ->trueColor('success')
-                            ->falseColor('danger'),
+                //         IconEntry::make('reminder_sent')
+                //             ->label('تم إرسال التذكير')
+                //             ->boolean()
+                //             ->trueIcon('heroicon-m-check-circle')
+                //             ->falseIcon('heroicon-m-x-circle')
+                //             ->trueColor('success')
+                //             ->falseColor('danger'),
 
-                        TextEntry::make('reminder_sent_at')
-                            ->label('وقت إرسال التذكير')
-                            ->icon('heroicon-m-clock')
-                            ->dateTime('d F Y - h:i A')
-                            ->placeholder('لم يتم الإرسال')
-                            ->visible(fn($record) => $record->reminder_sent),
-                    ])
-                    ->columns(2)
-                    ->collapsible()
-                    ->collapsed()
-                    ->icon('heroicon-m-information-circle'),
+                //         TextEntry::make('reminder_sent_at')
+                //             ->label('وقت إرسال التذكير')
+                //             ->icon('heroicon-m-clock')
+                //             ->dateTime('d F Y - h:i A')
+                //             ->placeholder('لم يتم الإرسال')
+                //             ->visible(fn($record) => $record->reminder_sent),
+                //     ])
+                //     ->columns(2)
+                //     ->collapsible()
+                //     ->collapsed()
+                //     ->icon('heroicon-m-information-circle'),
 
                 Section::make('معلومات النظام')
                     ->schema([
