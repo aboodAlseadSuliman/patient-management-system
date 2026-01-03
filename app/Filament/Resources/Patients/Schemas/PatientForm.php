@@ -47,7 +47,8 @@ class PatientForm
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(fn ($state, callable $set, callable $get) =>
+                            ->afterStateUpdated(
+                                fn($state, callable $set, callable $get) =>
                                 $set('full_name', self::buildFullNameFromForm($get))
                             )
                             ->columnSpan(1),
@@ -56,7 +57,8 @@ class PatientForm
                             ->label('اسم الأب (اختياري)')
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(fn ($state, callable $set, callable $get) =>
+                            ->afterStateUpdated(
+                                fn($state, callable $set, callable $get) =>
                                 $set('full_name', self::buildFullNameFromForm($get))
                             )
                             ->columnSpan(1),
@@ -66,7 +68,8 @@ class PatientForm
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(fn ($state, callable $set, callable $get) =>
+                            ->afterStateUpdated(
+                                fn($state, callable $set, callable $get) =>
                                 $set('full_name', self::buildFullNameFromForm($get))
                             )
                             ->columnSpan(1),
@@ -85,13 +88,34 @@ class PatientForm
                             ->label('سنة الميلاد')
                             ->options(self::getBirthYearOptions())
                             ->searchable()
+                            ->getSearchResultsUsing(function (string $search) {
+                                $currentYear = date('Y');
+                                $years = [];
+
+                                // If search is empty, return recent years (last 100 years)
+                                if (empty($search)) {
+                                    for ($year = $currentYear; $year >= $currentYear - 100; $year--) {
+                                        $years[$year] = (string) $year;
+                                    }
+                                    return $years;
+                                }
+
+                                // If search contains digits, filter years
+                                for ($year = $currentYear; $year >= 1900; $year--) {
+                                    if (str_contains((string) $year, $search)) {
+                                        $years[$year] = (string) $year;
+                                    }
+                                }
+
+                                return $years;
+                            })
                             ->columnSpan(1),
 
                         DatePicker::make('date_of_birth')
                             ->label('تاريخ الميلاد (اختياري)')
-                            ->columnSpan(2),
+                            ->columnSpan(1),
                     ])
-                    ->columns(4)
+                    ->columns(3)
                     ->collapsible(),
 
                 // ==================== معلومات الاتصال ====================
@@ -125,8 +149,8 @@ class PatientForm
                             ->columnSpan(2),
                     ])
                     ->columns(4)
-                    ->collapsible()
-                    ->collapsed(),
+                    ->collapsible(),
+                // ->collapsed(),
 
                 // ==================== معلومات إضافية ====================
                 Section::make('معلومات إضافية')
@@ -134,12 +158,16 @@ class PatientForm
                         TextInput::make('occupation')
                             ->label('المهنة (اختياري)')
                             ->maxLength(255)
+                            ->columnSpan(3),
+                        Toggle::make('is_active')
+                            ->label('نشط')
+                            ->default(true)
+                            ->inline(false)
                             ->columnSpan(1),
-
                         Select::make('referring_doctor_id')
                             ->label('الطبيب المحول (اختياري)')
                             ->relationship('referringDoctor', 'first_name')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->first_name} {$record->last_name}" . ($record->specialty ? " - {$record->specialty}" : ''))
+                            ->getOptionLabelFromRecordUsing(fn($record) => "{$record->first_name} {$record->last_name}" . ($record->specialty ? " - {$record->specialty}" : ''))
                             ->searchable(['first_name', 'last_name', 'specialty'])
                             ->preload()
                             ->createOptionForm([
@@ -159,13 +187,9 @@ class PatientForm
                                     ->tel()
                                     ->maxLength(20),
                             ])
-                            ->columnSpan(1),
+                            ->columnSpan(4),
 
-                        Toggle::make('is_active')
-                            ->label('نشط')
-                            ->default(true)
-                            ->inline(false)
-                            ->columnSpan(2),
+
 
                         Textarea::make('notes')
                             ->label('ملاحظات')
@@ -173,8 +197,8 @@ class PatientForm
                             ->columnSpanFull(),
                     ])
                     ->columns(4)
-                    ->collapsible()
-                    ->collapsed(),
+                    ->collapsible(),
+                // ->collapsed(),
             ]);
     }
 
@@ -215,7 +239,7 @@ class PatientForm
         $currentYear = date('Y');
         $years = [];
 
-        for ($year = $currentYear; $year >= 1920; $year--) {
+        for ($year = $currentYear; $year >= 1900; $year--) {
             $years[$year] = (string) $year;
         }
 

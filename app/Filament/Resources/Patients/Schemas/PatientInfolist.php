@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\Patients\Schemas;
 
 use App\Models\Patient;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Infolists\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Infolists\Components\TextEntry;
 
 class PatientInfolist
 {
@@ -122,9 +122,14 @@ class PatientInfolist
                             ->label('الطبيب المحول')
                             ->icon('heroicon-m-user')
                             ->placeholder('—')
-                            ->description(fn ($record) => $record->referringDoctor?->specialty)
                             ->badge()
                             ->color('info'),
+
+                        TextEntry::make('referringDoctor.specialty')
+                            ->label('تخصص الطبيب المحول')
+                            ->icon('heroicon-m-academic-cap')
+                            ->placeholder('—')
+                            ->visible(fn($record) => $record->referring_doctor_id !== null),
 
                         TextEntry::make('is_active')
                             ->label('الحالة')

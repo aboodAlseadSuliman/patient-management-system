@@ -31,9 +31,9 @@
                                 <th> رقم الملف </th>
                                 <th> الاسم الكامل </th>
                                 <th>رقم الهوية</th>
-                                <th> العمر </th>
                                 <th> الجنس </th>
-                                <th>تاريخ الميلاد</th>
+                                <th>سنة الميلاد</th>
+                                <th> العمر </th>
                                 <th>الحالة</th>
                             </tr>
                         </thead>
@@ -45,14 +45,15 @@
                                 <td class="stat-value text-orange"> {{ $patient->full_name }}
                                 </td>
                                 <td>{{ $patient->national_id ?? '-' }}</td>
-                                <td class="stat-value text-green">
-                                    {{ $patient->age_display }}
-                                </td>
                                 <td class="stat-value text-orange"> {{ $patient->gender === 'male' ? 'ذكر' : 'أنثى' }}
 
                                 </td>
-
-                                <td>{{ $patient->date_of_birth?->format('Y-m-d') ?? '-' }}</td>
+                                <td class="stat-value text-blue">
+                                    {{ $patient->birth_year ?? ($patient->date_of_birth?->format('Y') ?? '-') }}
+                                </td>
+                                <td class="stat-value text-green">
+                                    {{ $patient->age_display ?? '-' }}
+                                </td>
                                 <td>
                                     @if($patient->is_active)
                                     <span
@@ -74,20 +75,31 @@
                             </tr>
                             <tr>
                                 <th>رقم الجوال</th>
-                                <th>رقم بديل</th>
-                                <th>المدينة</th>
-                                <th>المنطقة</th>
-                                <th>العنوان</th>
-                                <th>أنشأه</th>
+                                <th>البلد</th>
+                                <th>المحافظة</th>
+                                <th>الحي/القرية</th>
+                                <th>المهنة</th>
+                                <th>الطبيب المحول</th>
                                 <th>تاريخ الإنشاء</th>
                             </tr>
                             <tr>
                                 <td>{{ $patient->phone ?? '-' }}</td>
-                                <td>{{ $patient->alternative_phone ?? '-' }}</td>
-                                <td>{{ $patient->city ?? '-' }}</td>
-                                <td>{{ $patient->area ?? '-' }}</td>
-                                <td>{{ $patient->address ?? '-' }}</td>
-                                <td>{{ $patient->creator?->name ?? '-' }}</td>
+                                <td>{{ $patient->country ?? '-' }}</td>
+                                <td>{{ $patient->province ?? '-' }}</td>
+                                <td>{{ $patient->neighborhood ?? '-' }}</td>
+                                <td>{{ $patient->occupation ?? '-' }}</td>
+                                <td>
+                                    @if($patient->referringDoctor)
+                                    <span
+                                        class="stat-value text-orange">{{ $patient->referringDoctor->full_name }}</span>
+                                    @if($patient->referringDoctor->specialty)
+                                    <br><span
+                                        class="text-xs text-gray-500">{{ $patient->referringDoctor->specialty }}</span>
+                                    @endif
+                                    @else
+                                    -
+                                    @endif
+                                </td>
                                 <td>{{ $patient->created_at?->format('Y-m-d H:i') ?? '-' }}</td>
                             </tr>
 
@@ -318,13 +330,6 @@
         </div>
 
     </div>
-
-    {{-- مساحة للمحتوى الإضافي --}}
-    <div class="mt-4 info-section p-4">
-        <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">مساحة لمعلومات إضافية</h3>
-        <p class="text-xs text-gray-500">هنا يمكنك إضافة الزيارات، الأدوية، أو أي محتوى آخر...</p>
-    </div>
-
 
 
     {{-- أسفل معلومات المريض مباشرة --}}
