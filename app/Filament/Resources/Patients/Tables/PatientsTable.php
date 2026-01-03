@@ -11,6 +11,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class PatientsTable
@@ -21,40 +22,83 @@ class PatientsTable
             ->columns([
                 TextColumn::make('file_number')
                     ->label('رقم الملف')
-                    ->searchable(),
-                TextColumn::make('national_id')
-                    ->label('رقم الهوية الوطنية')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable()
+                    ->copyable()
+                    ->weight('bold'),
+
                 TextColumn::make('full_name')
                     ->label('الاسم الكامل')
-                    ->searchable(),
+                    ->searchable(['first_name', 'father_name', 'last_name', 'full_name'])
+                    ->sortable()
+                    ->description(fn ($record) => $record->national_id ? "هوية: {$record->national_id}" : null),
+
                 TextColumn::make('gender')
                     ->label('الجنس')
-                    ->badge(),
-                TextColumn::make('date_of_birth')
-                    ->label('تاريخ الميلاد')
-                    ->date()
-                    ->sortable(),
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'male' => 'ذكر',
+                        'female' => 'أنثى',
+                        default => $state,
+                    })
+                    ->color(fn (string $state): string => match ($state) {
+                        'male' => 'info',
+                        'female' => 'danger',
+                        default => 'gray',
+                    })
+                    ->toggleable(),
+
+                TextColumn::make('birth_year')
+                    ->label('سنة الميلاد')
+                    ->sortable()
+                    ->toggleable(),
+
                 TextColumn::make('phone')
-                    ->label('رقم الهاتف الرئيسي')
-                    ->searchable(),
-                TextColumn::make('alternative_phone')
-                    ->label('رقم هاتف بديل')
-                    ->searchable(),
-                TextColumn::make('city')
-                    ->label('المدينة')
-                    ->searchable(),
-                TextColumn::make('area')
-                    ->label('المنطقة / الحي')
-                    ->searchable(),
+                    ->label('رقم الهاتف')
+                    ->searchable()
+                    ->copyable()
+                    ->icon('heroicon-o-phone'),
+
+                TextColumn::make('country')
+                    ->label('البلد')
+                    ->searchable()
+                    ->toggleable()
+                    ->placeholder('—'),
+
+                TextColumn::make('province')
+                    ->label('المحافظة')
+                    ->searchable()
+                    ->toggleable()
+                    ->placeholder('—'),
+
+                TextColumn::make('neighborhood')
+                    ->label('الحي/القرية')
+                    ->searchable()
+                    ->toggleable()
+                    ->placeholder('—'),
+
+                TextColumn::make('occupation')
+                    ->label('المهنة')
+                    ->searchable()
+                    ->toggleable()
+                    ->placeholder('—'),
+
+                TextColumn::make('referringDoctor.full_name')
+                    ->label('الطبيب المحول')
+                    ->searchable(['first_name', 'last_name'])
+                    ->toggleable()
+                    ->placeholder('—')
+                    ->description(fn ($record) => $record->referringDoctor?->specialty),
+
                 IconColumn::make('is_active')
                     ->label('نشط')
-                    ->boolean(),
+                    ->boolean()
+                    ->sortable(),
+
                 TextColumn::make('creator.name')
                     ->label('أنشأه')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-
 
                 TextColumn::make('updater.name')
                     ->label('عدّله')
@@ -63,22 +107,54 @@ class PatientsTable
 
                 TextColumn::make('created_at')
                     ->label('تاريخ الإنشاء')
-                    ->dateTime()
+                    ->dateTime('Y-m-d H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('updated_at')
                     ->label('تاريخ التحديث')
-                    ->dateTime()
+                    ->dateTime('Y-m-d H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('deleted_at')
                     ->label('تاريخ الحذف')
-                    ->dateTime()
+                    ->dateTime('Y-m-d H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 TrashedFilter::make(),
+
+                SelectFilter::make('gender')
+                    ->label('الجنس')
+                    ->options([
+                        'male' => 'ذكر',
+                        'female' => 'أنثى',
+                    ]),
+
+                SelectFilter::make('is_active')
+                    ->label('الحالة')
+                    ->options([
+                        1 => 'نشط',
+                        0 => 'غير نشط',
+                    ]),
+
+                SelectFilter::make('referring_doctor_id')
+                    ->label('الطبيب المحول')
+                    ->relationship('referringDoctor', 'first_name')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->first_name} {$record->last_name}")
+                    ->searchable()
+                    ->preload(),
+
+                SelectFilter::make('province')
+                    ->label('المحافظة')
+                    ->options(fn () => \App\Models\Patient::whereNotNull('province')
+                        ->distinct()
+                        ->pluck('province', 'province')
+                        ->toArray()
+                    )
+                    ->searchable(),
             ])
             ->recordActions([
                 ViewAction::make(),
@@ -90,6 +166,11 @@ class PatientsTable
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc')
+            ->striped()
+            ->persistSearchInSession()
+            ->persistColumnSearchesInSession()
+            ->persistFiltersInSession();
     }
 }

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Patients\Schemas;
 
 use App\Models\Patient;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\Section;
 use Filament\Schemas\Schema;
 
 class PatientInfolist
@@ -12,109 +13,165 @@ class PatientInfolist
     {
         return $schema
             ->components([
-                TextEntry::make('file_number')
-                    ->label('رقم الملف')
-                    ->badge()
-                    ->color('primary')
-                    ->size('lg')
-                    ->weight('bold'),
+                Section::make('معلومات التعريف')
+                    ->schema([
+                        TextEntry::make('file_number')
+                            ->label('رقم الملف')
+                            ->badge()
+                            ->color('primary')
+                            ->size('lg')
+                            ->weight('bold')
+                            ->copyable(),
 
-                TextEntry::make('full_name')
-                    ->label('الاسم الكامل')
-                    ->size('lg')
-                    ->weight('bold'),
+                        TextEntry::make('national_id')
+                            ->label('رقم الهوية الوطنية')
+                            ->copyable()
+                            ->placeholder('—'),
+                    ])
+                    ->columns(2),
 
-                TextEntry::make('national_id')
-                    ->label('رقم الهوية الوطنية')
-                    ->copyable()
-                    ->placeholder('-'),
+                Section::make('البيانات الشخصية')
+                    ->schema([
+                        TextEntry::make('full_name')
+                            ->label('الاسم الكامل')
+                            ->size('lg')
+                            ->weight('bold')
+                            ->columnSpanFull(),
 
-                TextEntry::make('gender')
-                    ->label('الجنس')
-                    ->formatStateUsing(fn(?string $state): string => match ($state) {
-                        'male' => 'ذكر',
-                        'female' => 'أنثى',
-                        default => '-',
-                    })
-                    ->badge()
-                    ->color(fn(?string $state): string => match ($state) {
-                        'male' => 'info',
-                        'female' => 'danger',
-                        default => 'gray',
-                    }),
+                        TextEntry::make('first_name')
+                            ->label('الاسم الأول'),
 
-                TextEntry::make('date_of_birth')
-                    ->label('تاريخ الميلاد')
-                    ->date('Y-m-d')
-                    ->placeholder('-'),
+                        TextEntry::make('father_name')
+                            ->label('اسم الأب')
+                            ->placeholder('—'),
 
-                TextEntry::make('age_display')
-                    ->label('العمر')
-                    ->badge()
-                    ->color('success'),
+                        TextEntry::make('last_name')
+                            ->label('اسم العائلة'),
 
-                TextEntry::make('phone')
-                    ->label('رقم الجوال')
-                    ->icon('heroicon-m-phone')
-                    ->copyable()
-                    ->placeholder('-'),
+                        TextEntry::make('gender')
+                            ->label('الجنس')
+                            ->formatStateUsing(fn(?string $state): string => match ($state) {
+                                'male' => 'ذكر',
+                                'female' => 'أنثى',
+                                default => '—',
+                            })
+                            ->badge()
+                            ->color(fn(?string $state): string => match ($state) {
+                                'male' => 'info',
+                                'female' => 'danger',
+                                default => 'gray',
+                            }),
 
-                TextEntry::make('alternative_phone')
-                    ->label('رقم هاتف بديل')
-                    ->icon('heroicon-m-phone')
-                    ->copyable()
-                    ->placeholder('-'),
+                        TextEntry::make('birth_year')
+                            ->label('سنة الميلاد')
+                            ->badge()
+                            ->color('success')
+                            ->placeholder('—'),
 
-                TextEntry::make('city')
-                    ->label('المدينة')
-                    ->icon('heroicon-m-map-pin')
-                    ->badge()
-                    ->placeholder('-'),
+                        TextEntry::make('date_of_birth')
+                            ->label('تاريخ الميلاد الكامل')
+                            ->date('Y-m-d')
+                            ->placeholder('—'),
 
-                TextEntry::make('address')
-                    ->label('العنوان')
-                    ->placeholder('-')
-                    ->columnSpanFull(),
+                        TextEntry::make('age_display')
+                            ->label('العمر')
+                            ->badge()
+                            ->color('success')
+                            ->placeholder('—'),
+                    ])
+                    ->columns(3),
 
-                TextEntry::make('area')
-                    ->label('المنطقة / الحي')
-                    ->placeholder('-'),
+                Section::make('معلومات الاتصال')
+                    ->schema([
+                        TextEntry::make('phone')
+                            ->label('رقم الهاتف')
+                            ->icon('heroicon-m-phone')
+                            ->copyable()
+                            ->size('lg'),
+                    ]),
 
-                TextEntry::make('is_active')
-                    ->label('الحالة')
-                    ->formatStateUsing(fn($state) => $state ? 'نشط ✅' : 'غير نشط ❌')
-                    ->badge()
-                    ->color(fn($state) => $state ? 'success' : 'danger'),
+                Section::make('الإقامة')
+                    ->schema([
+                        TextEntry::make('country')
+                            ->label('البلد')
+                            ->icon('heroicon-m-globe-alt')
+                            ->placeholder('—'),
 
-                TextEntry::make('notes')
-                    ->label('ملاحظات')
-                    ->placeholder('لا توجد ملاحظات')
-                    ->columnSpanFull(),
+                        TextEntry::make('province')
+                            ->label('المحافظة')
+                            ->icon('heroicon-m-map-pin')
+                            ->placeholder('—'),
 
-                TextEntry::make('creator.name')
-                    ->label('أنشئ بواسطة')
-                    ->icon('heroicon-m-user')
-                    ->placeholder('-'),
+                        TextEntry::make('neighborhood')
+                            ->label('الحي / القرية')
+                            ->icon('heroicon-m-home')
+                            ->placeholder('—'),
+                    ])
+                    ->columns(3)
+                    ->collapsed()
+                    ->collapsible(),
 
-                TextEntry::make('created_at')
-                    ->label('تاريخ الإنشاء')
-                    ->dateTime('Y-m-d H:i')
-                    ->placeholder('-'),
+                Section::make('معلومات إضافية')
+                    ->schema([
+                        TextEntry::make('occupation')
+                            ->label('المهنة')
+                            ->icon('heroicon-m-briefcase')
+                            ->placeholder('—'),
 
-                TextEntry::make('updater.name')
-                    ->label('تم التحديث بواسطة')
-                    ->icon('heroicon-m-user')
-                    ->placeholder('-'),
+                        TextEntry::make('referringDoctor.full_name')
+                            ->label('الطبيب المحول')
+                            ->icon('heroicon-m-user')
+                            ->placeholder('—')
+                            ->description(fn ($record) => $record->referringDoctor?->specialty)
+                            ->badge()
+                            ->color('info'),
 
-                TextEntry::make('updated_at')
-                    ->label('تاريخ التحديث')
-                    ->dateTime('Y-m-d H:i')
-                    ->placeholder('-'),
+                        TextEntry::make('is_active')
+                            ->label('الحالة')
+                            ->formatStateUsing(fn($state) => $state ? 'نشط ✅' : 'غير نشط ❌')
+                            ->badge()
+                            ->color(fn($state) => $state ? 'success' : 'danger'),
 
-                TextEntry::make('deleted_at')
-                    ->label('تاريخ الحذف')
-                    ->dateTime('Y-m-d H:i')
-                    ->visible(fn(Patient $record): bool => $record->trashed()),
+                        TextEntry::make('notes')
+                            ->label('ملاحظات')
+                            ->placeholder('لا توجد ملاحظات')
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(3)
+                    ->collapsed()
+                    ->collapsible(),
+
+                Section::make('معلومات النظام')
+                    ->schema([
+                        TextEntry::make('creator.name')
+                            ->label('أنشئ بواسطة')
+                            ->icon('heroicon-m-user')
+                            ->placeholder('—'),
+
+                        TextEntry::make('created_at')
+                            ->label('تاريخ الإنشاء')
+                            ->dateTime('Y-m-d H:i')
+                            ->placeholder('—'),
+
+                        TextEntry::make('updater.name')
+                            ->label('تم التحديث بواسطة')
+                            ->icon('heroicon-m-user')
+                            ->placeholder('—'),
+
+                        TextEntry::make('updated_at')
+                            ->label('تاريخ التحديث')
+                            ->dateTime('Y-m-d H:i')
+                            ->placeholder('—'),
+
+                        TextEntry::make('deleted_at')
+                            ->label('تاريخ الحذف')
+                            ->dateTime('Y-m-d H:i')
+                            ->visible(fn(Patient $record): bool => $record->trashed())
+                            ->columnSpan(2),
+                    ])
+                    ->columns(2)
+                    ->collapsed()
+                    ->collapsible(),
             ]);
     }
 }

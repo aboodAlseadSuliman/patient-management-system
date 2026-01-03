@@ -14,13 +14,18 @@ class Patient extends Model
         'file_number',
         'national_id',
         'full_name',
+        'first_name',
+        'father_name',
+        'last_name',
         'gender',
         'date_of_birth',
+        'birth_year',
         'phone',
-        'alternative_phone',
-        'address',
-        'city',
-        'area',
+        'country',
+        'province',
+        'neighborhood',
+        'occupation',
+        'referring_doctor_id',
         'is_active',
         'notes',
         'created_by',
@@ -70,6 +75,13 @@ class Patient extends Model
 
         // عند إنشاء مريض جديد
         static::creating(function ($patient) {
+            // ملء الاسم الكامل تلقائياً
+            $patient->full_name = self::buildFullName(
+                $patient->first_name,
+                $patient->father_name,
+                $patient->last_name
+            );
+
             if (auth()->check()) {
                 $patient->created_by = auth()->id();
                 $patient->updated_by = auth()->id();
@@ -78,10 +90,28 @@ class Patient extends Model
 
         // عند تحديث مريض
         static::updating(function ($patient) {
+            // تحديث الاسم الكامل إذا تغير أي من أجزاء الاسم
+            if ($patient->isDirty(['first_name', 'father_name', 'last_name'])) {
+                $patient->full_name = self::buildFullName(
+                    $patient->first_name,
+                    $patient->father_name,
+                    $patient->last_name
+                );
+            }
+
             if (auth()->check()) {
                 $patient->updated_by = auth()->id();
             }
         });
+    }
+
+    /**
+     * بناء الاسم الكامل من أجزاء الاسم
+     */
+    private static function buildFullName(?string $firstName, ?string $fatherName, ?string $lastName): string
+    {
+        $parts = array_filter([$firstName, $fatherName, $lastName]);
+        return implode(' ', $parts);
     }
 
 
@@ -145,6 +175,11 @@ class Patient extends Model
     public function attachments()
     {
         return $this->morphMany(Attachment::class, 'attachable');
+    }
+
+    public function referringDoctor()
+    {
+        return $this->belongsTo(ReferringDoctor::class, 'referring_doctor_id');
     }
 
     // ==================== Scopes ====================
