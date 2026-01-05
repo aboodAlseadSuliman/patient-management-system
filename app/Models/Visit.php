@@ -15,6 +15,7 @@ class Visit extends Model
 
     protected $fillable = [
         'patient_id',
+        'referring_doctor_id',
         'visit_number',
         'visit_date',
         'visit_type',
@@ -60,6 +61,10 @@ class Visit extends Model
         return $this->belongsTo(Patient::class);
     }
 
+    public function referringDoctor()
+    {
+        return $this->belongsTo(ReferringDoctor::class, 'referring_doctor_id');
+    }
 
     public function creator()
     {
@@ -199,5 +204,36 @@ class Visit extends Model
         return $this->belongsToMany(ImagingStudy::class, 'visit_imaging_studies')
             ->withPivot(['findings', 'impression', 'study_date', 'notes'])
             ->withTimestamps();
+    }
+
+    // العلاقات الجديدة للواجهات الأربعة
+    public function complaintSymptom()
+    {
+        return $this->hasOne(VisitComplaintSymptom::class);
+    }
+
+    public function timeline()
+    {
+        return $this->hasOne(VisitTimeline::class);
+    }
+
+    public function medicalAttachment()
+    {
+        return $this->hasOne(VisitMedicalAttachment::class);
+    }
+
+    public function clinicalExamination()
+    {
+        return $this->hasOne(VisitClinicalExamination::class);
+    }
+
+    public function treatmentPlan()
+    {
+        return $this->hasOne(VisitTreatmentPlan::class);
+    }
+
+    public function followup()
+    {
+        return $this->hasOne(VisitFollowup::class);
     }
 }

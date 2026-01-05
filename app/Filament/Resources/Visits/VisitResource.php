@@ -39,7 +39,11 @@ class VisitResource extends Resource
 
     public static function infolist(Schema $schema): Schema
     {
-        return VisitInfolist::configure($schema);
+        // استخدام طريقة التابات للعرض
+        return \App\Filament\Resources\Visits\Schemas\VisitInfolistTabs::configure($schema);
+
+        // أو استخدام طريقة الأقسام القابلة للطي (الطريقة القديمة)
+        // return VisitInfolist::configure($schema);
     }
 
     public static function table(Table $table): Table

@@ -1,0 +1,622 @@
+<?php
+
+namespace App\Filament\Resources\Visits\Schemas;
+
+use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Schema;
+
+class VisitInfolistTabs
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Tabs::make('visit_view_tabs')
+                    ->tabs([
+                        // ==================== التاب الأول: معلومات الزيارة ====================
+                        Tab::make('معلومات الزيارة')
+                            ->icon('heroicon-o-identification')
+                            ->schema([
+                                Grid::make(2)
+                                    ->schema([
+                                        // معلومات المريض
+                                        Section::make('بيانات المريض')
+                                            ->icon('heroicon-o-user')
+                                            ->schema([
+                                                TextEntry::make('patient.full_name')
+                                                    ->label('اسم المريض')
+                                                    ->icon('heroicon-o-user')
+                                                    ->weight('bold')
+                                                    ->size('lg')
+                                                    ->color('primary'),
+
+                                                TextEntry::make('patient.file_number')
+                                                    ->label('رقم الملف')
+                                                    ->icon('heroicon-o-document-text')
+                                                    ->badge()
+                                                    ->color('gray'),
+
+                                                TextEntry::make('patient.phone')
+                                                    ->label('رقم الهاتف')
+                                                    ->icon('heroicon-o-phone')
+                                                    ->copyable(),
+
+                                                TextEntry::make('patient.gender')
+                                                    ->label('الجنس')
+                                                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                                        'male' => 'ذكر',
+                                                        'female' => 'أنثى',
+                                                        default => $state ?? '-',
+                                                    })
+                                                    ->badge(),
+                                            ])
+                                            ->columnSpan(1),
+
+                                        // معلومات الزيارة
+                                        Section::make('بيانات الزيارة')
+                                            ->icon('heroicon-o-calendar')
+                                            ->schema([
+                                                TextEntry::make('visit_number')
+                                                    ->label('رقم الزيارة')
+                                                    ->badge()
+                                                    ->color('success')
+                                                    ->size('lg'),
+
+                                                TextEntry::make('visit_date')
+                                                    ->label('تاريخ الزيارة')
+                                                    ->icon('heroicon-o-calendar')
+                                                    ->date('Y-m-d')
+                                                    ->badge()
+                                                    ->color('info'),
+
+                                                TextEntry::make('visit_type')
+                                                    ->label('نوع الزيارة')
+                                                    ->badge()
+                                                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                                        'first_visit' => 'زيارة أولى',
+                                                        'follow_up' => 'متابعة',
+                                                        'emergency' => 'طوارئ',
+                                                        default => $state ?? '-',
+                                                    })
+                                                    ->color(fn (?string $state): string => match ($state) {
+                                                        'first_visit' => 'success',
+                                                        'follow_up' => 'info',
+                                                        'emergency' => 'danger',
+                                                        default => 'gray',
+                                                    })
+                                                    ->icon(fn (?string $state): string => match ($state) {
+                                                        'first_visit' => 'heroicon-o-sparkles',
+                                                        'follow_up' => 'heroicon-o-arrow-path',
+                                                        'emergency' => 'heroicon-o-exclamation-triangle',
+                                                        default => 'heroicon-o-clipboard-document',
+                                                    }),
+
+                                                IconEntry::make('is_completed')
+                                                    ->label('الزيارة مكتملة')
+                                                    ->boolean()
+                                                    ->trueIcon('heroicon-o-check-circle')
+                                                    ->falseIcon('heroicon-o-x-circle')
+                                                    ->trueColor('success')
+                                                    ->falseColor('danger'),
+                                            ])
+                                            ->columnSpan(1),
+                                    ]),
+                            ]),
+
+                        // ==================== التاب الثاني: الشكاية والأعراض ====================
+                        Tab::make('الشكاية والأعراض')
+                            ->icon('heroicon-o-clipboard-document-list')
+                            ->badge(fn ($record) => $record->complaintSymptom ? '✓' : null)
+                            ->badgeColor('success')
+                            ->schema([
+                                Section::make('الشكاية الرئيسية')
+                                    ->icon('heroicon-o-chat-bubble-left-right')
+                                    ->schema([
+                                        TextEntry::make('complaintSymptom.chief_complaint')
+                                            ->label('الشكوى الرئيسية')
+                                            ->icon('heroicon-o-exclamation-circle')
+                                            ->placeholder('لا توجد شكوى مسجلة')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+
+                                        TextEntry::make('complaintSymptom.complaint_characteristics')
+                                            ->label('مواصفات الشكاية')
+                                            ->placeholder('لا توجد مواصفات')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+
+                                        TextEntry::make('complaintSymptom.associated_symptoms')
+                                            ->label('الأعراض المصاحبة')
+                                            ->placeholder('لا توجد أعراض مصاحبة')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+                                    ]),
+                            ]),
+
+                        // ==================== التاب الثالث: الخط الزمني ====================
+                        Tab::make('الخط الزمني')
+                            ->icon('heroicon-o-clock')
+                            ->badge(fn ($record) => $record->timeline ? '✓' : null)
+                            ->badgeColor('success')
+                            ->schema([
+                                Section::make('الخط الزمني والتطور')
+                                    ->icon('heroicon-o-calendar')
+                                    ->schema([
+                                        Grid::make(3)
+                                            ->schema([
+                                                TextEntry::make('timeline.onset')
+                                                    ->label('البدء')
+                                                    ->badge()
+                                                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                                        'acute' => 'حاد',
+                                                        'chronic' => 'مزمن',
+                                                        'sudden' => 'مفاجئ',
+                                                        default => $state ?? '-',
+                                                    })
+                                                    ->color('info'),
+
+                                                TextEntry::make('timeline.frequency')
+                                                    ->label('التكرار')
+                                                    ->badge()
+                                                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                                        'episodic' => 'نوبي',
+                                                        'recurrent' => 'متكرر',
+                                                        'continuous' => 'مستمر',
+                                                        default => $state ?? '-',
+                                                    })
+                                                    ->color('warning'),
+
+                                                TextEntry::make('timeline.evolution')
+                                                    ->label('التطور')
+                                                    ->badge()
+                                                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                                        'worsening' => 'تفاقم',
+                                                        'stable' => 'ثابت',
+                                                        'improving' => 'تراجع',
+                                                        default => $state ?? '-',
+                                                    })
+                                                    ->color(fn (?string $state): string => match ($state) {
+                                                        'worsening' => 'danger',
+                                                        'stable' => 'warning',
+                                                        'improving' => 'success',
+                                                        default => 'gray',
+                                                    }),
+                                            ]),
+                                    ]),
+
+                                Section::make('العوامل المحرضة')
+                                    ->icon('heroicon-o-exclamation-triangle')
+                                    ->schema([
+                                        TextEntry::make('timeline.food_triggers')
+                                            ->label('محرضات غذائية')
+                                            ->placeholder('-')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+
+                                        TextEntry::make('timeline.psychological_triggers')
+                                            ->label('محرضات نفسية')
+                                            ->placeholder('-')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->collapsible()
+                                    ->collapsed(),
+
+                                Section::make('التاريخ المرضي')
+                                    ->icon('heroicon-o-document-text')
+                                    ->schema([
+                                        TextEntry::make('timeline.medical_conditions')
+                                            ->label('الحالات المرضية')
+                                            ->placeholder('-')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+
+                                        TextEntry::make('timeline.current_medications')
+                                            ->label('الأدوية المستخدمة')
+                                            ->placeholder('-')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+
+                                        TextEntry::make('timeline.previous_surgeries')
+                                            ->label('الجراحات السابقة')
+                                            ->placeholder('-')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->collapsible()
+                                    ->collapsed(),
+                            ]),
+
+                        // ==================== التاب الرابع: المرفقات الطبية ====================
+                        Tab::make('المرفقات الطبية')
+                            ->icon('heroicon-o-document-text')
+                            ->badge(fn ($record) => $record->medicalAttachment ? '✓' : null)
+                            ->badgeColor('success')
+                            ->schema([
+                                Section::make('الإحالة الطبية')
+                                    ->icon('heroicon-o-paper-clip')
+                                    ->schema([
+                                        TextEntry::make('referringDoctor.first_name')
+                                            ->label('الطبيب المحول')
+                                            ->formatStateUsing(function ($record) {
+                                                if (!$record->referringDoctor) return 'لا يوجد';
+                                                $doctor = $record->referringDoctor;
+                                                return "د. {$doctor->first_name} {$doctor->last_name}" .
+                                                    ($doctor->specialty ? " - {$doctor->specialty}" : '');
+                                            })
+                                            ->badge()
+                                            ->color('primary')
+                                            ->icon('heroicon-o-user-circle'),
+
+                                        TextEntry::make('medicalAttachment.medical_referral')
+                                            ->label('تفاصيل الإحالة')
+                                            ->placeholder('لا توجد تفاصيل إحالة')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+                                    ]),
+                            ]),
+
+                        // ==================== التاب الخامس: الفحص السريري ====================
+                        Tab::make('الفحص السريري')
+                            ->icon('heroicon-o-heart')
+                            ->badge(fn ($record) => $record->clinicalExamination ? '✓' : null)
+                            ->badgeColor('success')
+                            ->schema([
+                                Section::make('العلامات الحيوية')
+                                    ->icon('heroicon-o-heart')
+                                    ->schema([
+                                        Grid::make(4)
+                                            ->schema([
+                                                TextEntry::make('clinicalExamination.blood_pressure')
+                                                    ->label('ضغط الدم')
+                                                    ->badge()
+                                                    ->color('danger')
+                                                    ->icon('heroicon-o-heart')
+                                                    ->placeholder('-'),
+
+                                                TextEntry::make('clinicalExamination.pulse')
+                                                    ->label('النبض')
+                                                    ->badge()
+                                                    ->suffix(' نبضة/دقيقة')
+                                                    ->color('info')
+                                                    ->placeholder('-'),
+
+                                                TextEntry::make('clinicalExamination.temperature')
+                                                    ->label('الحرارة')
+                                                    ->badge()
+                                                    ->suffix(' °C')
+                                                    ->color('warning')
+                                                    ->placeholder('-'),
+
+                                                TextEntry::make('clinicalExamination.oxygen_saturation')
+                                                    ->label('الأكسجين')
+                                                    ->badge()
+                                                    ->suffix(' %')
+                                                    ->color('success')
+                                                    ->placeholder('-'),
+                                            ]),
+
+                                        TextEntry::make('clinicalExamination.weight')
+                                            ->label('الوزن')
+                                            ->suffix(' كغ')
+                                            ->placeholder('-'),
+                                    ]),
+
+                                Section::make('الفحص الجسدي')
+                                    ->icon('heroicon-o-user')
+                                    ->schema([
+                                        TextEntry::make('clinicalExamination.abdomen_pelvis_exam')
+                                            ->label('فحص البطن والحوض')
+                                            ->placeholder('لم يتم الفحص')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+
+                                        TextEntry::make('clinicalExamination.rectal_exam')
+                                            ->label('المس الشرجي')
+                                            ->placeholder('لم يتم الفحص')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->collapsible()
+                                    ->collapsed(),
+
+                                Section::make('إيكو البطن')
+                                    ->icon('heroicon-o-wifi')
+                                    ->schema([
+                                        Grid::make(3)
+                                            ->schema([
+                                                TextEntry::make('clinicalExamination.liver_echo')
+                                                    ->label('الكبد')
+                                                    ->placeholder('-')
+                                                    ->markdown(),
+
+                                                TextEntry::make('clinicalExamination.gallbladder_echo')
+                                                    ->label('المرارة')
+                                                    ->placeholder('-')
+                                                    ->markdown(),
+
+                                                TextEntry::make('clinicalExamination.pancreas_echo')
+                                                    ->label('البنكرياس')
+                                                    ->placeholder('-')
+                                                    ->markdown(),
+
+                                                TextEntry::make('clinicalExamination.spleen_echo')
+                                                    ->label('الطحال')
+                                                    ->placeholder('-')
+                                                    ->markdown(),
+
+                                                TextEntry::make('clinicalExamination.kidneys_echo')
+                                                    ->label('الكليتين')
+                                                    ->placeholder('-')
+                                                    ->markdown(),
+
+                                                TextEntry::make('clinicalExamination.intestines_echo')
+                                                    ->label('الأمعاء')
+                                                    ->placeholder('-')
+                                                    ->markdown(),
+                                            ]),
+                                    ])
+                                    ->collapsible()
+                                    ->collapsed(),
+                            ]),
+
+                        // ==================== التاب السادس: خطة العلاج ====================
+                        Tab::make('خطة العلاج')
+                            ->icon('heroicon-o-beaker')
+                            ->badge(fn ($record) => $record->treatmentPlan ? '✓' : null)
+                            ->badgeColor('success')
+                            ->schema([
+                                Section::make('الوصفة الدوائية')
+                                    ->icon('heroicon-o-beaker')
+                                    ->schema([
+                                        TextEntry::make('treatmentPlan.medication_name')
+                                            ->label('الدواء')
+                                            ->placeholder('-')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+
+                                        Grid::make(3)
+                                            ->schema([
+                                                TextEntry::make('treatmentPlan.medication_form')
+                                                    ->label('الشكل الدوائي')
+                                                    ->badge()
+                                                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                                        'tablets' => 'مضغوطات',
+                                                        'capsules' => 'كبسولات',
+                                                        'syrup' => 'شراب',
+                                                        'suppositories' => 'تحاميل',
+                                                        'solution' => 'محلول',
+                                                        default => $state ?? '-',
+                                                    })
+                                                    ->color('info')
+                                                    ->placeholder('-'),
+
+                                                TextEntry::make('treatmentPlan.duration')
+                                                    ->label('المدة')
+                                                    ->badge()
+                                                    ->color('warning')
+                                                    ->placeholder('-'),
+
+                                                TextEntry::make('treatmentPlan.usage_instructions')
+                                                    ->label('طريقة الاستخدام')
+                                                    ->placeholder('-'),
+                                            ]),
+                                    ]),
+
+                                Section::make('الفحوصات المطلوبة')
+                                    ->icon('heroicon-o-clipboard-document-list')
+                                    ->schema([
+                                        TextEntry::make('treatmentPlan.requested_lab_tests')
+                                            ->label('التحاليل المطلوبة')
+                                            ->placeholder('لا توجد تحاليل مطلوبة')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+
+                                        TextEntry::make('treatmentPlan.requested_imaging')
+                                            ->label('الأشعة المطلوبة')
+                                            ->placeholder('لا توجد أشعة مطلوبة')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->collapsible()
+                                    ->collapsed(),
+
+                                Section::make('التنظير المطلوب')
+                                    ->icon('heroicon-o-magnifying-glass-circle')
+                                    ->schema([
+                                        Grid::make(4)
+                                            ->schema([
+                                                IconEntry::make('treatmentPlan.needs_upper_endoscopy')
+                                                    ->label('تنظير علوي')
+                                                    ->boolean()
+                                                    ->trueIcon('heroicon-o-check-circle')
+                                                    ->falseIcon('heroicon-o-x-circle')
+                                                    ->trueColor('success')
+                                                    ->falseColor('gray'),
+
+                                                IconEntry::make('treatmentPlan.needs_colonoscopy')
+                                                    ->label('تنظير سفلي')
+                                                    ->boolean()
+                                                    ->trueIcon('heroicon-o-check-circle')
+                                                    ->falseIcon('heroicon-o-x-circle')
+                                                    ->trueColor('success')
+                                                    ->falseColor('gray'),
+
+                                                IconEntry::make('treatmentPlan.needs_ercp')
+                                                    ->label('ERCP')
+                                                    ->boolean()
+                                                    ->trueIcon('heroicon-o-check-circle')
+                                                    ->falseIcon('heroicon-o-x-circle')
+                                                    ->trueColor('success')
+                                                    ->falseColor('gray'),
+
+                                                IconEntry::make('treatmentPlan.needs_guided_biopsy')
+                                                    ->label('خزعة موجهة')
+                                                    ->boolean()
+                                                    ->trueIcon('heroicon-o-check-circle')
+                                                    ->falseIcon('heroicon-o-x-circle')
+                                                    ->trueColor('success')
+                                                    ->falseColor('gray'),
+                                            ]),
+                                    ])
+                                    ->collapsible()
+                                    ->collapsed(),
+
+                                Section::make('الإحالة والاستشارات')
+                                    ->icon('heroicon-o-users')
+                                    ->schema([
+                                        TextEntry::make('treatmentPlan.referrals_consultations')
+                                            ->label('الإحالة والاستشارات')
+                                            ->placeholder('-')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->collapsible()
+                                    ->collapsed(),
+                            ]),
+
+                        // ==================== التاب السابع: التشخيص والمتابعة ====================
+                        Tab::make('التشخيص والمتابعة')
+                            ->icon('heroicon-o-clipboard-document-check')
+                            ->badge(fn ($record) => $record->followup ? '✓' : null)
+                            ->badgeColor('success')
+                            ->schema([
+                                Section::make('التشخيص النهائي')
+                                    ->icon('heroicon-o-clipboard-document-check')
+                                    ->schema([
+                                        TextEntry::make('followup.final_diagnosis')
+                                            ->label('التشخيص النهائي')
+                                            ->placeholder('لم يتم التشخيص بعد')
+                                            ->markdown()
+                                            ->weight('bold')
+                                            ->color('success')
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                Section::make('الأمراض المزمنة')
+                                    ->icon('heroicon-o-heart')
+                                    ->schema([
+                                        TextEntry::make('followup.chronic_esophagus_stomach')
+                                            ->label('أمراض المريء والمعدة المزمنة')
+                                            ->placeholder('-')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+
+                                        TextEntry::make('followup.chronic_intestines_colon')
+                                            ->label('أمراض الأمعاء والكولون المزمنة')
+                                            ->placeholder('-')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+
+                                        TextEntry::make('followup.chronic_liver')
+                                            ->label('أمراض الكبد المزمنة')
+                                            ->placeholder('-')
+                                            ->markdown()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->collapsible()
+                                    ->collapsed(),
+
+                                Section::make('المتابعة')
+                                    ->icon('heroicon-o-calendar-days')
+                                    ->schema([
+                                        Grid::make(3)
+                                            ->schema([
+                                                IconEntry::make('followup.followup_required')
+                                                    ->label('يحتاج متابعة')
+                                                    ->boolean()
+                                                    ->trueIcon('heroicon-o-check-circle')
+                                                    ->falseIcon('heroicon-o-x-circle')
+                                                    ->trueColor('warning')
+                                                    ->falseColor('gray'),
+
+                                                TextEntry::make('followup.followup_period')
+                                                    ->label('فترة المتابعة')
+                                                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                                        '1_week' => 'أسبوع واحد',
+                                                        '2_weeks' => 'أسبوعين',
+                                                        '1_month' => 'شهر',
+                                                        '2_months' => 'شهرين',
+                                                        '3_months' => '3 أشهر',
+                                                        '6_months' => '6 أشهر',
+                                                        '1_year' => 'سنة',
+                                                        default => $state ?? '-',
+                                                    })
+                                                    ->badge()
+                                                    ->color('info')
+                                                    ->placeholder('-'),
+
+                                                TextEntry::make('followup.final_status')
+                                                    ->label('الحالة النهائية')
+                                                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                                        'recovery' => 'شفاء تام',
+                                                        'improvement' => 'تحسن',
+                                                        'under_treatment' => 'تحت العلاج',
+                                                        'death' => 'وفاة',
+                                                        default => $state ?? '-',
+                                                    })
+                                                    ->badge()
+                                                    ->color(fn (?string $state): string => match ($state) {
+                                                        'recovery' => 'success',
+                                                        'improvement' => 'info',
+                                                        'under_treatment' => 'warning',
+                                                        'death' => 'danger',
+                                                        default => 'gray',
+                                                    })
+                                                    ->icon(fn (?string $state): string => match ($state) {
+                                                        'recovery' => 'heroicon-o-check-circle',
+                                                        'improvement' => 'heroicon-o-arrow-trending-up',
+                                                        'under_treatment' => 'heroicon-o-clock',
+                                                        'death' => 'heroicon-o-x-circle',
+                                                        default => 'heroicon-o-question-mark-circle',
+                                                    })
+                                                    ->placeholder('-'),
+                                            ]),
+                                    ]),
+                            ]),
+
+                        // ==================== التاب الثامن: معلومات النظام ====================
+                        Tab::make('معلومات النظام')
+                            ->icon('heroicon-o-cog')
+                            ->schema([
+                                Section::make('بيانات النظام')
+                                    ->icon('heroicon-o-information-circle')
+                                    ->schema([
+                                        Grid::make(2)
+                                            ->schema([
+                                                TextEntry::make('creator.name')
+                                                    ->label('أنشئت بواسطة')
+                                                    ->icon('heroicon-o-user')
+                                                    ->badge()
+                                                    ->color('gray')
+                                                    ->placeholder('-'),
+
+                                                TextEntry::make('created_at')
+                                                    ->label('تاريخ الإنشاء')
+                                                    ->icon('heroicon-o-calendar')
+                                                    ->dateTime('Y-m-d H:i')
+                                                    ->badge()
+                                                    ->color('info'),
+
+                                                TextEntry::make('updated_at')
+                                                    ->label('آخر تحديث')
+                                                    ->icon('heroicon-o-arrow-path')
+                                                    ->dateTime('Y-m-d H:i')
+                                                    ->since()
+                                                    ->badge()
+                                                    ->color('warning'),
+                                            ]),
+                                    ]),
+                            ]),
+                    ])
+                    ->persistTabInQueryString('view_tab')
+                    ->contained(false)
+                    ->columnSpanFull(),
+            ]);
+    }
+}
