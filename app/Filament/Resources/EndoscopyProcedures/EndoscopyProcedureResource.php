@@ -30,8 +30,6 @@ class EndoscopyProcedureResource extends Resource
 
     protected static ?string $pluralModelLabel = 'إجراءات التنظير';
 
-    protected static ?string $navigationGroup = 'السجلات الطبية';
-
     protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
