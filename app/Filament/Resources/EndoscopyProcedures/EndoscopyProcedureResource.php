@@ -24,6 +24,16 @@ class EndoscopyProcedureResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
+    protected static ?string $navigationLabel = 'إجراءات التنظير';
+
+    protected static ?string $modelLabel = 'إجراء تنظير';
+
+    protected static ?string $pluralModelLabel = 'إجراءات التنظير';
+
+    protected static ?string $navigationGroup = 'السجلات الطبية';
+
+    protected static ?int $navigationSort = 3;
+
     public static function form(Schema $schema): Schema
     {
         return EndoscopyProcedureForm::configure($schema);

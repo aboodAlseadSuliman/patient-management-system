@@ -24,6 +24,16 @@ class HospitalConsultationResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
+    protected static ?string $navigationLabel = 'معاينات المشفى';
+
+    protected static ?string $modelLabel = 'معاينة مشفى';
+
+    protected static ?string $pluralModelLabel = 'معاينات المشفى';
+
+    protected static ?string $navigationGroup = 'السجلات الطبية';
+
+    protected static ?int $navigationSort = 2;
+
     public static function form(Schema $schema): Schema
     {
         return HospitalConsultationForm::configure($schema);
