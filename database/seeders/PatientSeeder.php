@@ -73,20 +73,28 @@ class PatientSeeder extends Seeder
             $age = rand(15, 80);
             $dob = Carbon::now()->subYears($age)->subDays(rand(0, 364));
 
+            // تقسيم الاسم إلى أجزاء
+            $nameParts = explode(' ', $name);
+            $firstName = $nameParts[0] ?? '';
+            $fatherName = $nameParts[1] ?? '';
+            $lastName = count($nameParts) > 2 ? $nameParts[2] : 'الأحمد';
+
             $patient = Patient::create([
                 'file_number' => 'P' . str_pad($i, 6, '0', STR_PAD_LEFT),
                 'national_id' => '1' . str_pad(rand(100000000, 999999999), 9, '0', STR_PAD_LEFT),
-                'full_name' => $name,
+                'first_name' => $firstName,
+                'father_name' => $fatherName,
+                'last_name' => $lastName,
                 'gender' => $gender,
                 'date_of_birth' => $dob,
                 'phone' => '05' . rand(10000000, 99999999),
-                'alternative_phone' => rand(0, 1) ? '05' . rand(10000000, 99999999) : null,
-                'address' => 'حي ' . ['النزهة', 'الملك فهد', 'العليا', 'الروضة'][rand(0, 3)],
-                'city' => $cities[array_rand($cities)],
-                'area' => 'منطقة ' . rand(1, 10),
+                'country' => 'سوريا',
+                'province' => 'حلب',
+                'neighborhood' => 'حي ' . ['النزهة', 'الملك فهد', 'العليا', 'الروضة'][rand(0, 3)],
+                'occupation' => ['موظف', 'طالب', 'متقاعد', 'أعمال حرة'][rand(0, 3)],
                 'is_active' => true,
                 'notes' => rand(0, 1) ? 'ملاحظات عامة عن المريض' : null,
-                'created_by' => rand(2, 3), // doctor
+                'created_by' => 1, // admin user
             ]);
 
             // إضافة أمراض مزمنة لبعض المرضى (40%)
