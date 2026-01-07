@@ -4,11 +4,11 @@ namespace App\Filament\Resources\Visits\Pages;
 
 use App\Filament\Resources\Visits\VisitResource;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Database\Eloquent\Model;
 
 class CreateVisit extends CreateRecord
 {
     protected static string $resource = VisitResource::class;
+
 
     /**
      * حفظ البيانات في الجداول المرتبطة بعد إنشاء الزيارة
@@ -17,6 +17,34 @@ class CreateVisit extends CreateRecord
     {
         $data = $this->form->getState();
         $visit = $this->record;
+
+        // ⭐ مزامنة الأمراض المزمنة مع ملف المريض
+        if (isset($data['chronic_diseases_sync']) && !empty($data['chronic_diseases_sync'])) {
+            $visit->patient->chronicDiseases()->syncWithoutDetaching(
+                collect($data['chronic_diseases_sync'])->mapWithKeys(function ($diseaseId) use ($visit) {
+                    return [$diseaseId => [
+                        'diagnosis_date' => $visit->visit_date,
+                        'is_active' => true,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]];
+                })->toArray()
+            );
+        }
+
+        // ⭐ مزامنة الأدوية الدائمة مع ملف المريض
+        if (isset($data['permanent_medications_sync']) && !empty($data['permanent_medications_sync'])) {
+            $visit->patient->permanentMedications()->syncWithoutDetaching(
+                collect($data['permanent_medications_sync'])->mapWithKeys(function ($medicationId) {
+                    return [$medicationId => [
+                        'is_active' => true,
+                        'start_date' => now(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]];
+                })->toArray()
+            );
+        }
 
         // حفظ الشكاية والأعراض
         if (isset($data['complaintSymptom']) && !empty(array_filter($data['complaintSymptom']))) {

@@ -237,24 +237,81 @@ class TimelineInfoTab
                 // ==================== المربع الرابع: التاريخ المرضي ====================
                 Section::make('التاريخ المرضي')
                     ->icon('heroicon-o-document-text')
-                    ->description('السوابق الطبية والجراحية')
+                    ->description('السوابق الطبية والجراحية من ملف المريض')
                     ->schema([
+                        // ⭐ الأمراض المزمنة
+                        TextEntry::make('chronic_diseases_list')
+                            ->label('🔄 الأمراض المزمنة')
+                            ->state(function ($record) {
+                                if (!$record || !$record->patient) {
+                                    return 'لا توجد أمراض مزمنة';
+                                }
+
+                                $diseases = $record->patient->chronicDiseases()
+                                    ->where('patient_chronic_diseases.is_active', true)
+                                    ->get();
+
+                                if ($diseases->isEmpty()) {
+                                    return 'لا توجد أمراض مزمنة';
+                                }
+
+                                return $diseases->map(function ($disease) {
+                                    $text = $disease->name_ar;
+                                    if ($disease->pivot->diagnosis_date) {
+                                        $text .= ' (منذ ' . $disease->pivot->diagnosis_date . ')';
+                                    }
+                                    return $text;
+                                })->implode(' • ');
+                            })
+                            ->color('warning')
+                            ->icon('heroicon-o-exclamation-triangle')
+                            ->columnSpanFull(),
+
+                        // ⭐ الأدوية الدائمة
+                        TextEntry::make('permanent_medications_list')
+                            ->label('💊 الأدوية الدائمة')
+                            ->state(function ($record) {
+                                if (!$record || !$record->patient) {
+                                    return 'لا توجد أدوية دائمة';
+                                }
+
+                                $medications = $record->patient->permanentMedications()
+                                    ->where('patient_permanent_medications.is_active', true)
+                                    ->get();
+
+                                if ($medications->isEmpty()) {
+                                    return 'لا توجد أدوية دائمة';
+                                }
+
+                                return $medications->map(function ($medication) {
+                                    $text = $medication->name_ar;
+                                    if ($medication->strength) {
+                                        $text .= ' (' . $medication->strength . ')';
+                                    }
+                                    if ($medication->pivot->dosage || $medication->pivot->frequency) {
+                                        $details = [];
+                                        if ($medication->pivot->dosage) $details[] = $medication->pivot->dosage;
+                                        if ($medication->pivot->frequency) $details[] = $medication->pivot->frequency;
+                                        $text .= ' - ' . implode(', ', $details);
+                                    }
+                                    return $text;
+                                })->implode(' • ');
+                            })
+                            ->color('info')
+                            ->icon('heroicon-o-beaker')
+                            ->columnSpanFull(),
+
+                        // ⭐ حالات طبية أخرى (نص حر)
                         TextEntry::make('timeline.medical_conditions')
-                            ->label('الحالات المرضية')
+                            ->label('📝 حالات طبية أخرى')
                             ->markdown()
-                            ->placeholder('لا توجد حالات مرضية مسجلة')
-                            ->helperText('تم تحميلها من ملف المريض')
+                            ->placeholder('لا توجد معلومات إضافية')
+                            ->visible(fn ($record) => $record?->timeline?->medical_conditions)
                             ->columnSpanFull(),
 
-                        TextEntry::make('timeline.current_medications')
-                            ->label('الأدوية المستخدمة')
-                            ->markdown()
-                            ->placeholder('لا توجد أدوية مسجلة')
-                            ->helperText('تم تحميلها من ملف المريض')
-                            ->columnSpanFull(),
-
+                        // ⭐ الجراحات السابقة
                         TextEntry::make('timeline.previous_surgeries')
-                            ->label('الجراحات السابقة')
+                            ->label('🏥 الجراحات السابقة')
                             ->markdown()
                             ->placeholder('لا توجد جراحات سابقة')
                             ->columnSpanFull(),

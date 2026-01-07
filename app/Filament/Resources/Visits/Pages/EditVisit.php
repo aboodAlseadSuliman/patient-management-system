@@ -8,7 +8,6 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
-use Illuminate\Database\Eloquent\Model;
 
 class EditVisit extends EditRecord
 {
@@ -71,6 +70,47 @@ class EditVisit extends EditRecord
     {
         $data = $this->form->getState();
         $visit = $this->record;
+
+        // ⭐ مزامنة الأمراض المزمنة مع ملف المريض
+        if (isset($data['chronic_diseases_sync'])) {
+            $visit->patient->chronicDiseases()->sync(
+                collect($data['chronic_diseases_sync'])->mapWithKeys(function ($diseaseId) use ($visit) {
+                    // الاحتفاظ بالبيانات الموجودة أو إنشاء جديدة
+                    $existing = $visit->patient->chronicDiseases()
+                        ->where('chronic_disease_id', $diseaseId)
+                        ->first();
+
+                    return [$diseaseId => [
+                        'diagnosis_date' => $existing?->pivot->diagnosis_date ?? $visit->visit_date,
+                        'notes' => $existing?->pivot->notes,
+                        'is_active' => true,
+                        'updated_at' => now(),
+                    ]];
+                })->toArray()
+            );
+        }
+
+        // ⭐ مزامنة الأدوية الدائمة مع ملف المريض
+        if (isset($data['permanent_medications_sync'])) {
+            $visit->patient->permanentMedications()->sync(
+                collect($data['permanent_medications_sync'])->mapWithKeys(function ($medicationId) use ($visit) {
+                    // الاحتفاظ بالبيانات الموجودة أو إنشاء جديدة
+                    $existing = $visit->patient->permanentMedications()
+                        ->where('medication_id', $medicationId)
+                        ->first();
+
+                    return [$medicationId => [
+                        'dosage' => $existing?->dosage,
+                        'frequency' => $existing?->frequency,
+                        'route' => $existing?->route ?? 'oral',
+                        'start_date' => $existing?->start_date ?? now(),
+                        'notes' => $existing?->notes,
+                        'is_active' => true,
+                        'updated_at' => now(),
+                    ]];
+                })->toArray()
+            );
+        }
 
         // تحديث أو إنشاء الشكاية والأعراض
         if (isset($data['complaintSymptom'])) {
