@@ -30,7 +30,7 @@ class HospitalConsultationResource extends Resource
 
     protected static ?string $pluralModelLabel = 'معاينات المشفى';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

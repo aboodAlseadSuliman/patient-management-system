@@ -16,10 +16,24 @@ class EditEndoscopyProcedure extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            ViewAction::make(),
-            DeleteAction::make(),
-            ForceDeleteAction::make(),
-            RestoreAction::make(),
+            ViewAction::make()
+                ->label('عرض'),
+            DeleteAction::make()
+                ->label('حذف'),
+            ForceDeleteAction::make()
+                ->label('حذف نهائي'),
+            RestoreAction::make()
+                ->label('استعادة'),
         ];
+    }
+
+    public function getTitle(): string
+    {
+        return 'تعديل إجراء التنظير';
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'تم حفظ التغييرات بنجاح';
     }
 }

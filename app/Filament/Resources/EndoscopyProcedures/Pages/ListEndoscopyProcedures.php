@@ -13,7 +13,13 @@ class ListEndoscopyProcedures extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->label('إجراء جديد'),
         ];
+    }
+
+    public function getTitle(): string
+    {
+        return 'إجراءات التنظير';
     }
 }

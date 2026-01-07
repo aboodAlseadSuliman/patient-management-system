@@ -13,7 +13,13 @@ class ViewHospitalConsultation extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            EditAction::make(),
+            EditAction::make()
+                ->label('تعديل'),
         ];
+    }
+
+    public function getTitle(): string
+    {
+        return 'عرض معاينة المشفى';
     }
 }
