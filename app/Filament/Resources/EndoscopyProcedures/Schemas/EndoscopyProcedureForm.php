@@ -7,6 +7,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
 
 class EndoscopyProcedureForm
 {
@@ -14,56 +16,135 @@ class EndoscopyProcedureForm
     {
         return $schema
             ->components([
-                TextInput::make('patient_id')
-                    ->required()
-                    ->numeric(),
-                TextInput::make('sequential_number')
-                    ->required(),
-                DatePicker::make('procedure_date')
-                    ->required(),
-                TextInput::make('day_of_week')
-                    ->required(),
-                TextInput::make('hospital_id')
-                    ->required()
-                    ->numeric(),
-                Select::make('admission_type')
-                    ->options(['internal' => 'Internal', 'external' => 'External'])
-                    ->required(),
-                TextInput::make('source')
-                    ->required(),
-                TextInput::make('doctor_id')
-                    ->numeric()
-                    ->default(null),
-                TextInput::make('indication_id')
-                    ->numeric()
-                    ->default(null),
-                Textarea::make('indication_notes')
-                    ->default(null)
-                    ->columnSpanFull(),
-                Select::make('procedure_type')
-                    ->options(['upper' => 'Upper', 'lower' => 'Lower', 'biopsy' => 'Biopsy'])
-                    ->required(),
-                Textarea::make('result_text')
-                    ->default(null)
-                    ->columnSpanFull(),
-                Textarea::make('biopsy_locations')
-                    ->default(null)
-                    ->columnSpanFull(),
-                Textarea::make('biopsy_results')
-                    ->default(null)
-                    ->columnSpanFull(),
-                Select::make('follow_up_status')
-                    ->options(['completed' => 'Completed', 'ongoing' => 'Ongoing'])
-                    ->default(null),
-                Textarea::make('notes')
-                    ->default(null)
-                    ->columnSpanFull(),
-                TextInput::make('created_by')
-                    ->numeric()
-                    ->default(null),
-                TextInput::make('updated_by')
-                    ->numeric()
-                    ->default(null),
+                Section::make('معلومات الإجراء الأساسية')
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                Select::make('patient_id')
+                                    ->label('المريض')
+                                    ->relationship('patient', 'full_name')
+                                    ->searchable(['full_name', 'file_number', 'phone'])
+                                    ->preload()
+                                    ->required()
+                                    ->createOptionForm([
+                                        TextInput::make('first_name')
+                                            ->label('الاسم الأول')
+                                            ->required(),
+                                        TextInput::make('father_name')
+                                            ->label('اسم الأب')
+                                            ->required(),
+                                        TextInput::make('last_name')
+                                            ->label('اسم العائلة')
+                                            ->required(),
+                                    ]),
+
+                                DatePicker::make('procedure_date')
+                                    ->label('تاريخ الإجراء')
+                                    ->required()
+                                    ->default(now())
+                                    ->native(false),
+
+                                Select::make('hospital_id')
+                                    ->label('المشفى')
+                                    ->relationship('hospital', 'name_ar')
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(),
+                            ]),
+
+                        Grid::make(3)
+                            ->schema([
+                                Select::make('admission_type')
+                                    ->label('نوع الإدخال')
+                                    ->options([
+                                        'internal' => 'داخلي',
+                                        'external' => 'خارجي',
+                                    ])
+                                    ->required()
+                                    ->default('internal'),
+
+                                Select::make('source')
+                                    ->label('المصدر')
+                                    ->options([
+                                        'hospital' => 'مشفى',
+                                        'consultation' => 'استشارة',
+                                        'private' => 'خاص',
+                                    ])
+                                    ->required()
+                                    ->default('hospital'),
+
+                                Select::make('procedure_type')
+                                    ->label('نوع الإجراء')
+                                    ->options([
+                                        'upper' => 'علوي',
+                                        'lower' => 'سفلي',
+                                        'biopsy' => 'خزعة',
+                                    ])
+                                    ->required()
+                                    ->default('upper'),
+                            ]),
+
+                        Grid::make(2)
+                            ->schema([
+                                Select::make('doctor_id')
+                                    ->label('الطبيب')
+                                    ->relationship('doctor', 'name')
+                                    ->searchable()
+                                    ->preload(),
+
+                                Select::make('indication_id')
+                                    ->label('الاستطباب')
+                                    ->relationship('indication', 'name_ar')
+                                    ->searchable()
+                                    ->preload(),
+                            ]),
+
+                        Textarea::make('indication_notes')
+                            ->label('ملاحظات الاستطباب')
+                            ->rows(3)
+                            ->placeholder('أي ملاحظات حول الاستطباب...')
+                            ->columnSpanFull(),
+                    ]),
+
+                Section::make('نتائج الإجراء')
+                    ->schema([
+                        Textarea::make('result_text')
+                            ->label('نص النتيجة')
+                            ->rows(4)
+                            ->placeholder('وصف تفصيلي لنتيجة الإجراء...')
+                            ->columnSpanFull(),
+
+                        Textarea::make('biopsy_locations')
+                            ->label('مواقع الخزعة')
+                            ->rows(3)
+                            ->placeholder('تحديد مواقع أخذ الخزعة...')
+                            ->columnSpanFull()
+                            ->visible(fn ($get) => $get('procedure_type') === 'biopsy'),
+
+                        Textarea::make('biopsy_results')
+                            ->label('نتائج الخزعة')
+                            ->rows(3)
+                            ->placeholder('نتائج تحليل الخزعة...')
+                            ->columnSpanFull()
+                            ->visible(fn ($get) => $get('procedure_type') === 'biopsy'),
+                    ]),
+
+                Section::make('المتابعة والملاحظات')
+                    ->schema([
+                        Select::make('follow_up_status')
+                            ->label('حالة المتابعة')
+                            ->options([
+                                'completed' => 'مكتمل',
+                                'ongoing' => 'مستمر',
+                            ])
+                            ->placeholder('اختر حالة المتابعة'),
+
+                        Textarea::make('notes')
+                            ->label('ملاحظات إضافية')
+                            ->rows(3)
+                            ->placeholder('أي ملاحظات أخرى...')
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 }
