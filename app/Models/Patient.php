@@ -182,6 +182,16 @@ class Patient extends Model
         return $this->belongsTo(ReferringDoctor::class, 'referring_doctor_id');
     }
 
+    public function hospitalConsultations()
+    {
+        return $this->hasMany(HospitalConsultation::class);
+    }
+
+    public function endoscopyProcedures()
+    {
+        return $this->hasMany(EndoscopyProcedure::class);
+    }
+
     // ==================== Scopes ====================
 
     public function scopeActive($query)
