@@ -19,6 +19,7 @@ class Visit extends Model
         'visit_number',
         'visit_date',
         'visit_type',
+        'preliminary_diagnosis_id',
         'chief_complaint',
         'associated_symptoms',
         'evolution',
@@ -64,6 +65,11 @@ class Visit extends Model
     public function referringDoctor()
     {
         return $this->belongsTo(ReferringDoctor::class, 'referring_doctor_id');
+    }
+
+    public function preliminaryDiagnosis()
+    {
+        return $this->belongsTo(Diagnosis::class, 'preliminary_diagnosis_id');
     }
 
     public function creator()

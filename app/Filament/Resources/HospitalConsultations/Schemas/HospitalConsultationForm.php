@@ -18,7 +18,7 @@ class HospitalConsultationForm
             ->components([
                 Section::make('معلومات المعاينة الأساسية')
                     ->schema([
-                        Grid::make(3)
+                        Grid::make(1)
                             ->schema([
                                 Select::make('patient_id')
                                     ->label('المريض')
@@ -50,9 +50,11 @@ class HospitalConsultationForm
                                     ->searchable()
                                     ->preload()
                                     ->required(),
+
+
                             ]),
 
-                        Grid::make(3)
+                        Grid::make(2)
                             ->schema([
                                 Select::make('source')
                                     ->label('المصدر')
@@ -74,7 +76,38 @@ class HospitalConsultationForm
                                     ->label('التشخيص الأولي')
                                     ->relationship('preliminaryDiagnosis', 'name_ar')
                                     ->searchable()
-                                    ->preload(),
+                                    ->preload()
+                                    ->createOptionForm([
+                                        TextInput::make('name_ar')
+                                            ->label('الاسم بالعربية')
+                                            ->required()
+                                            ->maxLength(255),
+                                        TextInput::make('name_en')
+                                            ->label('الاسم بالإنجليزية')
+                                            ->maxLength(255),
+                                        TextInput::make('category')
+                                            ->label('التصنيف')
+                                            ->maxLength(100),
+                                    ])
+                                    ->createOptionUsing(function (array $data): int {
+                                        $diagnosis = \App\Models\Diagnosis::create([
+                                            'name_ar' => $data['name_ar'],
+                                            'name_en' => $data['name_en'] ?? null,
+                                            'category' => $data['category'] ?? 'عام',
+                                            'is_active' => true,
+                                            'usage_count' => 0,
+                                        ]);
+
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('تم إضافة التشخيص بنجاح')
+                                            ->body("تم إضافة: {$diagnosis->name_ar}")
+                                            ->success()
+                                            ->send();
+
+                                        return $diagnosis->id;
+                                    })
+                                    ->createOptionModalHeading('إضافة تشخيص جديد')
+                                    ->helperText('اختر التشخيص المبدئي أو أضف جديد'),
                             ]),
                     ]),
 

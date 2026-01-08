@@ -2,17 +2,17 @@
 
 namespace Database\Seeders;
 
-use App\Models\Diagnosis;
+use App\Models\PreliminaryDiagnosis;
 use Illuminate\Database\Seeder;
 
-class DiagnosisSeeder extends Seeder
+class PreliminaryDiagnosisSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        $diagnoses = [
+        $preliminaryDiagnoses = [
             // التشخيصات المبدئية للجهاز الهضمي
             ['name_ar' => 'قلاعات للدراسة', 'name_en' => 'Oral Thrush for Study', 'category' => 'هضمي - المريء'],
             ['name_ar' => 'عسر بلع للدراسة', 'name_en' => 'Dysphagia for Study', 'category' => 'هضمي - المريء'],
@@ -34,8 +34,8 @@ class DiagnosisSeeder extends Seeder
             ['name_ar' => 'انسداد صفراوي للدراسة', 'name_en' => 'Biliary Obstruction for Study', 'category' => 'هضمي - الطرق الصفراوية'],
         ];
 
-        foreach ($diagnoses as $diagnosis) {
-            Diagnosis::create($diagnosis + ['is_active' => true, 'usage_count' => 0]);
+        foreach ($preliminaryDiagnoses as $diagnosis) {
+            PreliminaryDiagnosis::create($diagnosis + ['is_active' => true]);
         }
     }
 }

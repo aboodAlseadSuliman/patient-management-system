@@ -117,6 +117,16 @@ class EndoscopyProcedure extends Model
         )->withPivot('notes')->withTimestamps();
     }
 
+    public function biopsyLocations()
+    {
+        return $this->belongsToMany(
+            BiopsyLocation::class,
+            'procedure_biopsy_locations',
+            'procedure_id',
+            'location_id'
+        )->withPivot('notes')->withTimestamps();
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

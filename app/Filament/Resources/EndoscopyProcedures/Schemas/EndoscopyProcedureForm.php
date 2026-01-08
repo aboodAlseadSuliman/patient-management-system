@@ -18,7 +18,7 @@ class EndoscopyProcedureForm
             ->components([
                 Section::make('معلومات الإجراء الأساسية')
                     ->schema([
-                        Grid::make(3)
+                        Grid::make(2)
                             ->schema([
                                 Select::make('patient_id')
                                     ->label('المريض')
@@ -50,10 +50,7 @@ class EndoscopyProcedureForm
                                     ->searchable()
                                     ->preload()
                                     ->required(),
-                            ]),
 
-                        Grid::make(3)
-                            ->schema([
                                 Select::make('admission_type')
                                     ->label('نوع الإدخال')
                                     ->options([
@@ -84,6 +81,7 @@ class EndoscopyProcedureForm
                                     ->default('upper'),
                             ]),
 
+
                         Grid::make(2)
                             ->schema([
                                 Select::make('doctor_id')
@@ -96,7 +94,37 @@ class EndoscopyProcedureForm
                                     ->label('الاستطباب')
                                     ->relationship('indication', 'name_ar')
                                     ->searchable()
-                                    ->preload(),
+                                    ->preload()
+                                    ->createOptionForm([
+                                        TextInput::make('name_ar')
+                                            ->label('الاسم بالعربية')
+                                            ->required()
+                                            ->maxLength(255),
+                                        TextInput::make('name_en')
+                                            ->label('الاسم بالإنجليزية')
+                                            ->maxLength(255),
+                                        TextInput::make('category')
+                                            ->label('التصنيف')
+                                            ->maxLength(100),
+                                    ])
+                                    ->createOptionUsing(function (array $data): int {
+                                        $indication = \App\Models\PreliminaryDiagnosis::create([
+                                            'name_ar' => $data['name_ar'],
+                                            'name_en' => $data['name_en'] ?? null,
+                                            'category' => $data['category'] ?? 'عام',
+                                            'is_active' => true,
+                                        ]);
+
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('تم إضافة الاستطباب بنجاح')
+                                            ->body("تم إضافة: {$indication->name_ar}")
+                                            ->success()
+                                            ->send();
+
+                                        return $indication->id;
+                                    })
+                                    ->createOptionModalHeading('إضافة استطباب جديد')
+                                    ->helperText('اختر الاستطباب أو أضف جديد'),
                             ]),
 
                         Textarea::make('indication_notes')
@@ -104,7 +132,54 @@ class EndoscopyProcedureForm
                             ->rows(3)
                             ->placeholder('أي ملاحظات حول الاستطباب...')
                             ->columnSpanFull(),
-                    ]),
+                    ])->collapsible()
+                    ->collapsed(),
+
+                Section::make('التداخلات')
+                    ->icon('heroicon-o-wrench-screwdriver')
+                    ->description('اختر التداخلات التي تم إجراؤها')
+                    ->schema([
+                        Select::make('interventions')
+                            ->label('التداخلات المنفذة')
+                            ->relationship('interventions', 'name_ar')
+                            ->multiple()
+                            ->searchable()
+                            ->preload()
+                            ->createOptionForm([
+                                TextInput::make('name_ar')
+                                    ->label('الاسم بالعربية')
+                                    ->required()
+                                    ->maxLength(255),
+                                TextInput::make('name_en')
+                                    ->label('الاسم بالإنجليزية')
+                                    ->maxLength(255),
+                                TextInput::make('abbreviation')
+                                    ->label('الاختصار')
+                                    ->maxLength(50),
+                            ])
+                            ->createOptionUsing(function (array $data): int {
+                                $intervention = \App\Models\EndoscopyIntervention::create([
+                                    'name_ar' => $data['name_ar'],
+                                    'name_en' => $data['name_en'] ?? null,
+                                    'abbreviation' => $data['abbreviation'] ?? null,
+                                    'is_active' => true,
+                                ]);
+
+                                \Filament\Notifications\Notification::make()
+                                    ->title('تم إضافة التداخل بنجاح')
+                                    ->body("تم إضافة: {$intervention->name_ar}")
+                                    ->success()
+                                    ->send();
+
+                                return $intervention->id;
+                            })
+                            ->createOptionModalHeading('إضافة تداخل جديد')
+                            ->suffixIcon('heroicon-o-plus-circle')
+                            ->helperText('يمكنك اختيار أكثر من تداخل أو إضافة تداخل جديد')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
 
                 Section::make('نتائج الإجراء')
                     ->schema([
@@ -114,20 +189,53 @@ class EndoscopyProcedureForm
                             ->placeholder('وصف تفصيلي لنتيجة الإجراء...')
                             ->columnSpanFull(),
 
-                        Textarea::make('biopsy_locations')
+                        Select::make('biopsyLocations')
                             ->label('مواقع الخزعة')
-                            ->rows(3)
-                            ->placeholder('تحديد مواقع أخذ الخزعة...')
-                            ->columnSpanFull()
-                            ->visible(fn ($get) => $get('procedure_type') === 'biopsy'),
+                            ->relationship('biopsyLocations', 'name_ar')
+                            ->multiple()
+                            ->searchable()
+                            ->preload()
+                            ->createOptionForm([
+                                TextInput::make('name_ar')
+                                    ->label('الاسم بالعربية')
+                                    ->required()
+                                    ->maxLength(255),
+                                TextInput::make('name_en')
+                                    ->label('الاسم بالإنجليزية')
+                                    ->maxLength(255),
+                                TextInput::make('abbreviation')
+                                    ->label('الاختصار')
+                                    ->maxLength(50),
+                            ])
+                            ->createOptionUsing(function (array $data): int {
+                                $location = \App\Models\BiopsyLocation::create([
+                                    'name_ar' => $data['name_ar'],
+                                    'name_en' => $data['name_en'] ?? null,
+                                    'abbreviation' => $data['abbreviation'] ?? null,
+                                    'is_active' => true,
+                                ]);
+
+                                \Filament\Notifications\Notification::make()
+                                    ->title('تم إضافة مكان الخزعة بنجاح')
+                                    ->body("تم إضافة: {$location->name_ar}")
+                                    ->success()
+                                    ->send();
+
+                                return $location->id;
+                            })
+                            ->createOptionModalHeading('إضافة مكان خزعة جديد')
+                            ->suffixIcon('heroicon-o-plus-circle')
+                            ->helperText('يمكنك اختيار أكثر من مكان أو إضافة مكان جديد')
+                            ->columnSpanFull(),
 
                         Textarea::make('biopsy_results')
                             ->label('نتائج الخزعة')
                             ->rows(3)
                             ->placeholder('نتائج تحليل الخزعة...')
-                            ->columnSpanFull()
-                            ->visible(fn ($get) => $get('procedure_type') === 'biopsy'),
-                    ]),
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
 
                 Section::make('المتابعة والملاحظات')
                     ->schema([
@@ -144,7 +252,8 @@ class EndoscopyProcedureForm
                             ->rows(3)
                             ->placeholder('أي ملاحظات أخرى...')
                             ->columnSpanFull(),
-                    ]),
+                    ])->collapsible()
+                    ->collapsed(),
             ]);
     }
 }
