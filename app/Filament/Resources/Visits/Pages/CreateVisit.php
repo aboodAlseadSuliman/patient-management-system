@@ -18,6 +18,13 @@ class CreateVisit extends CreateRecord
         $data = $this->form->getState();
         $visit = $this->record;
 
+        // 🔍 تتبع بيانات التحاليل للتصحيح
+        \Log::info('CreateVisit - Full Form Data:', ['data' => $data]);
+        \Log::info('CreateVisit - labTestsData exists:', ['exists' => isset($data['labTestsData'])]);
+        if (isset($data['labTestsData'])) {
+            \Log::info('CreateVisit - labTestsData content:', ['labTestsData' => $data['labTestsData']]);
+        }
+
         // ⭐ مزامنة الأمراض المزمنة مع ملف المريض
         if (isset($data['chronic_diseases_sync']) && !empty($data['chronic_diseases_sync'])) {
             $visit->patient->chronicDiseases()->syncWithoutDetaching(
@@ -74,6 +81,32 @@ class CreateVisit extends CreateRecord
         // حفظ المتابعة
         if (isset($data['followup']) && !empty(array_filter($data['followup']))) {
             $visit->followup()->create($data['followup']);
+        }
+
+        // حفظ التحاليل المطلوبة
+        if (isset($data['labTestsData']) && !empty($data['labTestsData'])) {
+            \Log::info('CreateVisit - Starting lab tests sync');
+            $syncData = [];
+            foreach ($data['labTestsData'] as $labTestData) {
+                \Log::info('CreateVisit - Processing lab test:', ['labTestData' => $labTestData]);
+                if (isset($labTestData['lab_test_id'])) {
+                    $syncData[$labTestData['lab_test_id']] = [
+                        'notes' => $labTestData['notes'] ?? null,
+                        'result' => null,
+                        'test_date' => null,
+                        'is_normal' => null,
+                    ];
+                }
+            }
+            \Log::info('CreateVisit - Sync data prepared:', ['syncData' => $syncData]);
+            $visit->labTests()->sync($syncData);
+            \Log::info('CreateVisit - Sync completed');
+
+            // التحقق من الحفظ
+            $savedCount = $visit->labTests()->count();
+            \Log::info('CreateVisit - Lab tests saved count:', ['count' => $savedCount]);
+        } else {
+            \Log::warning('CreateVisit - labTestsData is empty or not set');
         }
     }
 }

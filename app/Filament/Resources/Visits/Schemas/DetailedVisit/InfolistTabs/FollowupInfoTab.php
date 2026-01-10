@@ -14,7 +14,7 @@ class FollowupInfoTab
     {
         return Tab::make('المتابعة والتشخيص النهائي')
             ->icon('heroicon-o-clipboard-document-check')
-            ->badge(fn ($record) => $record->followup ? '✓' : null)
+            ->badge(fn($record) => $record->followup ? '✓' : null)
             ->badgeColor('success')
             ->schema([
 
@@ -22,156 +22,52 @@ class FollowupInfoTab
                 Section::make('التشخيص المبدئي (للدراسة)')
                     ->icon('heroicon-o-clipboard-document-list')
                     ->description('التشخيصات المحتملة التي تحتاج إلى دراسة ومتابعة')
-                    ->schema([
-                        Grid::make(3)
-                            ->schema([
-                                IconEntry::make('followup.ulcers_for_study')
-                                    ->label('قرحات للدراسة')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
+                    ->schema(function ($record) {
+                        // تحميل العلاقة إذا لم تكن محملة
+                        if (!$record->relationLoaded('preliminaryDiagnoses')) {
+                            $record->load('preliminaryDiagnoses');
+                        }
 
-                                IconEntry::make('followup.dysphagia_for_study')
-                                    ->label('عسرة بلع للدراسة')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
+                        $diagnoses = $record->preliminaryDiagnoses;
 
-                                IconEntry::make('followup.suspected_gerd')
-                                    ->label('قلس مريئي مشتبه')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
+                        if ($diagnoses->isEmpty()) {
+                            return [
+                                TextEntry::make('no_diagnoses')
+                                    ->label('')
+                                    ->default('لا توجد تشخيصات مبدئية')
+                                    ->color('gray')
+                                    ->columnSpanFull(),
+                            ];
+                        }
 
-                                IconEntry::make('followup.ibs_suspected')
-                                    ->label('كولون عصبي مشتبه')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
+                        // إنشاء Grid من الـ entries
+                        return [
+                            Grid::make(3)->schema(
+                                $diagnoses->map(function ($diagnosis) {
+                                    $label = $diagnosis->name_ar;
+                                    if ($diagnosis->name_en) {
+                                        $label .= " ({$diagnosis->name_en})";
+                                    }
 
-                                IconEntry::make('followup.suspected_malabsorption')
-                                    ->label('سوء امتصاص مشتبه')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
+                                    $description = null;
+                                    if ($diagnosis->category) {
+                                        $description = $diagnosis->category;
+                                    }
 
-                                IconEntry::make('followup.suspected_celiac')
-                                    ->label('داء زلاقي مشتبه')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
-
-                                IconEntry::make('followup.suspected_ibd')
-                                    ->label('داء معوي التهابي مشتبه')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
-
-                                IconEntry::make('followup.suspected_hemorrhoids_fissure')
-                                    ->label('بواسير/شق شرجي مشتبه')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
-
-                                IconEntry::make('followup.suspected_liver_disease')
-                                    ->label('مرض كبدي مشتبه')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
-
-                                IconEntry::make('followup.suspected_hepatitis_a')
-                                    ->label('التهاب كبد A مشتبه')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
-
-                                IconEntry::make('followup.suspected_hepatitis_b')
-                                    ->label('التهاب كبد B مشتبه')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
-
-                                IconEntry::make('followup.suspected_cirrhosis')
-                                    ->label('تشمع كبد مشتبه')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
-
-                                IconEntry::make('followup.suspected_gallstones')
-                                    ->label('حصيات مرارية مشتبهة')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
-
-                                IconEntry::make('followup.suspected_pancreatitis')
-                                    ->label('التهاب بنكرياس مشتبه')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
-
-                                IconEntry::make('followup.gi_bleeding_for_study')
-                                    ->label('نزف هضمي للدراسة')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('danger')
-                                    ->falseColor('gray'),
-
-                                IconEntry::make('followup.acute_abdomen_for_study')
-                                    ->label('بطن حادة للدراسة')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('danger')
-                                    ->falseColor('gray'),
-
-                                IconEntry::make('followup.suspected_malignancy')
-                                    ->label('ورم خبيث مشتبه')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('danger')
-                                    ->falseColor('gray'),
-
-                                IconEntry::make('followup.other_suspected_diagnosis')
-                                    ->label('تشخيصات أخرى مشتبهة')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('warning')
-                                    ->falseColor('gray'),
-                            ]),
-                    ])
+                                    return IconEntry::make("diagnosis_{$diagnosis->id}")
+                                        ->label($label)
+                                        ->helperText($description)
+                                        ->boolean()
+                                        ->default(true)
+                                        ->trueIcon('heroicon-o-check-circle')
+                                        ->trueColor('success');
+                                })->toArray()
+                            )
+                        ];
+                    })
                     ->collapsible()
-                    ->collapsed(),
+                    ->collapsed()
+                    ->visible(fn($record) => $record->preliminaryDiagnoses && $record->preliminaryDiagnoses->count() > 0),
 
                 // ==================== 2. التشخيص النهائي ====================
                 Section::make('التشخيص النهائي')
@@ -235,7 +131,7 @@ class FollowupInfoTab
                             ->label('فترة المتابعة')
                             ->badge()
                             ->color('info')
-                            ->formatStateUsing(fn (string $state = null): string => match ($state) {
+                            ->formatStateUsing(fn(string $state = null): string => match ($state) {
                                 '1_week' => 'أسبوع واحد',
                                 '2_weeks' => 'أسبوعين',
                                 '1_month' => 'شهر',
@@ -259,14 +155,14 @@ class FollowupInfoTab
                         TextEntry::make('followup.final_status')
                             ->label('الحالة النهائية')
                             ->badge()
-                            ->color(fn (string $state = null): string => match ($state) {
+                            ->color(fn(string $state = null): string => match ($state) {
                                 'recovery' => 'success',
                                 'improvement' => 'info',
                                 'under_treatment' => 'warning',
                                 'death' => 'danger',
                                 default => 'gray',
                             })
-                            ->formatStateUsing(fn (string $state = null): string => match ($state) {
+                            ->formatStateUsing(fn(string $state = null): string => match ($state) {
                                 'recovery' => 'شفاء تام (Recovery)',
                                 'improvement' => 'تحسن (Improvement)',
                                 'under_treatment' => 'تحت العلاج (Under Treatment)',

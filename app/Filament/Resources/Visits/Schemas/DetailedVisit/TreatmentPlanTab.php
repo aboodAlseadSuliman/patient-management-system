@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Visits\Schemas\DetailedVisit;
 
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -134,13 +135,76 @@ class TreatmentPlanTab
                 // ==================== 3. التحاليل المطلوبة ====================
                 Section::make('التحاليل المطلوبة')
                     ->icon('heroicon-o-beaker')
+                    ->description('اختر التحاليل المطلوبة وأضف التعليمات لكل تحليل')
                     ->schema([
-                        Textarea::make('treatmentPlan.requested_lab_tests')
-                            ->label('التحاليل المطلوبة')
-                            ->rows(3)
-                            ->placeholder('CBC، وظائف الكبد، وظائف الكلى...')
-                            ->helperText('يمكن إضافة التحاليل التفصيلية من التبويبات الأخرى')
-                            ->columnSpanFull(),
+                        Repeater::make('labTestsData')
+                            ->schema([
+                                Select::make('lab_test_id')
+                                    ->label('اسم التحليل')
+                                    ->options(function () {
+                                        return \App\Models\LabTest::where('is_active', true)
+                                            ->orderBy('category')
+                                            ->orderBy('name_ar')
+                                            ->get()
+                                            ->mapWithKeys(function ($labTest) {
+                                                $label = $labTest->name_ar;
+                                                if ($labTest->abbreviation) {
+                                                    $label .= " ({$labTest->abbreviation})";
+                                                }
+                                                if ($labTest->name_en) {
+                                                    $label .= " - {$labTest->name_en}";
+                                                }
+                                                return [$labTest->id => $label];
+                                            });
+                                    })
+                                    ->searchable()
+                                    ->required()
+                                    ->disableOptionsWhenSelectedInSiblingRepeaterItems()
+                                    ->live()
+                                    ->columnSpan(2),
+
+                                Textarea::make('notes')
+                                    ->label('التعليمات والملاحظات')
+                                    ->placeholder('مثال: يجب أن يكون على ريق 8 ساعات، قبل العشاء، إلخ...')
+                                    ->rows(2)
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(2)
+                            ->reorderable()
+                            ->collapsible()
+                            ->itemLabel(fn (array $state): ?string =>
+                                \App\Models\LabTest::find($state['lab_test_id'])?->name_ar ?? 'تحليل جديد'
+                            )
+                            ->addActionLabel('إضافة تحليل')
+                            ->defaultItems(0)
+                            ->columnSpanFull()
+                            ->afterStateHydrated(function ($component, $state, $record) {
+                                \Log::info('TreatmentPlanTab - afterStateHydrated called', [
+                                    'has_record' => $record !== null,
+                                    'record_id' => $record?->id,
+                                ]);
+
+                                if ($record) {
+                                    // تحميل العلاقة بشكل صريح
+                                    $record->load('labTests');
+
+                                    \Log::info('TreatmentPlanTab - Lab tests count', [
+                                        'count' => $record->labTests->count(),
+                                    ]);
+
+                                    if ($record->labTests->count() > 0) {
+                                        $data = $record->labTests->map(function ($labTest) {
+                                            return [
+                                                'lab_test_id' => $labTest->id,
+                                                'notes' => $labTest->pivot->notes,
+                                            ];
+                                        })->toArray();
+
+                                        \Log::info('TreatmentPlanTab - Setting state', ['data' => $data]);
+                                        $component->state($data);
+                                    }
+                                }
+                            }),
                     ])
                     ->collapsible(),
 

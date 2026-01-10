@@ -24,6 +24,25 @@ class EditVisit extends EditRecord
     }
 
     /**
+     * تحميل جميع العلاقات عند فتح صفحة التعديل
+     */
+    protected function resolveRecord(int | string $key): \Illuminate\Database\Eloquent\Model
+    {
+        return parent::resolveRecord($key)->load([
+            'patient',
+            'referringDoctor',
+            'complaintSymptom',
+            'timeline',
+            'medicalAttachment',
+            'clinicalExamination',
+            'treatmentPlan',
+            'followup',
+            'labTests',
+            'preliminaryDiagnoses',
+        ]);
+    }
+
+    /**
      * تحميل البيانات من الجداول المرتبطة عند تحرير الزيارة
      */
     protected function mutateFormDataBeforeFill(array $data): array
@@ -158,6 +177,31 @@ class EditVisit extends EditRecord
                 ['visit_id' => $visit->id],
                 $data['followup']
             );
+        }
+
+        // حفظ التحاليل المطلوبة
+        \Log::info('EditVisit - labTestsData exists:', ['exists' => isset($data['labTestsData'])]);
+        if (isset($data['labTestsData'])) {
+            \Log::info('EditVisit - Starting lab tests sync');
+            $syncData = [];
+            foreach ($data['labTestsData'] as $labTestData) {
+                if (isset($labTestData['lab_test_id'])) {
+                    $syncData[$labTestData['lab_test_id']] = [
+                        'notes' => $labTestData['notes'] ?? null,
+                        'result' => null,
+                        'test_date' => null,
+                        'is_normal' => null,
+                    ];
+                }
+            }
+            \Log::info('EditVisit - Sync data prepared:', ['syncData' => $syncData]);
+            $visit->labTests()->sync($syncData);
+            \Log::info('EditVisit - Sync completed');
+
+            $savedCount = $visit->labTests()->count();
+            \Log::info('EditVisit - Lab tests saved count:', ['count' => $savedCount]);
+        } else {
+            \Log::warning('EditVisit - labTestsData is empty or not set');
         }
     }
 }

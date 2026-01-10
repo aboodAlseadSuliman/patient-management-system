@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\Visits\Schemas\DetailedVisit;
 
 use App\Models\Patient;
+use App\Models\ReferringDoctor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\DatePicker;
@@ -239,45 +241,80 @@ class PatientVisitInfoTab
                     ->helperText('اختر نوع الزيارة المناسب')
                     ->columnSpan(1),
 
-                // التشخيص المبدئي
-                Select::make('preliminary_diagnosis_id')
-                    ->label('التشخيص المبدئي')
-                    ->relationship('preliminaryDiagnosis', 'name_ar')
-                    ->searchable()
+
+                Select::make('referring_doctor_id')
+                    ->label('الطبيب المحول')
+                    ->relationship('referringDoctor', 'first_name')
+                    ->getOptionLabelFromRecordUsing(function ($record) {
+                        return "{$record->first_name} {$record->last_name}" .
+                            ($record->specialty ? " - {$record->specialty}" : '');
+                    })
+                    ->searchable(['first_name', 'last_name', 'specialty'])
                     ->preload()
                     ->createOptionForm([
-                        TextInput::make('name_ar')
-                            ->label('الاسم بالعربية')
-                            ->required()
-                            ->maxLength(255),
-                        TextInput::make('name_en')
-                            ->label('الاسم بالإنجليزية')
-                            ->maxLength(255),
-                        TextInput::make('category')
-                            ->label('التصنيف')
-                            ->maxLength(100),
+                        Section::make('معلومات الطبيب المحول')
+                            ->icon('heroicon-o-user-circle')
+                            ->schema([
+                                TextInput::make('first_name')
+                                    ->label('الاسم الأول')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->placeholder('أحمد')
+                                    ->columnSpan(1),
+
+                                TextInput::make('last_name')
+                                    ->label('الكنية')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->placeholder('محمد')
+                                    ->columnSpan(1),
+
+                                TextInput::make('specialty')
+                                    ->label('التخصص')
+                                    ->maxLength(255)
+                                    ->placeholder('باطنة، جراحة، أطفال...')
+                                    ->columnSpan(2),
+
+                                TextInput::make('mobile_phone')
+                                    ->label('رقم الجوال')
+                                    ->tel()
+                                    ->maxLength(20)
+                                    ->placeholder('0912345678')
+                                    ->columnSpan(2),
+
+                                TextInput::make('clinic_address')
+                                    ->label('عنوان العيادة')
+                                    ->maxLength(255)
+                                    ->placeholder('دمشق، المزة...')
+                                    ->columnSpan(2),
+                            ])
+                            ->columns(4),
                     ])
                     ->createOptionUsing(function (array $data): int {
-                        $diagnosis = \App\Models\Diagnosis::create([
-                            'name_ar' => $data['name_ar'],
-                            'name_en' => $data['name_en'] ?? null,
-                            'category' => $data['category'] ?? 'عام',
-                            'is_active' => true,
-                            'usage_count' => 0,
-                        ]);
+                        $doctor = ReferringDoctor::create($data);
 
-                        \Filament\Notifications\Notification::make()
-                            ->title('تم إضافة التشخيص بنجاح')
-                            ->body("تم إضافة: {$diagnosis->name_ar}")
+                        Notification::make()
+                            ->title('تم إضافة الطبيب بنجاح')
+                            ->body("د. {$doctor->first_name} {$doctor->last_name}")
                             ->success()
+                            ->icon('heroicon-o-check-circle')
+                            ->duration(3000)
                             ->send();
 
-                        return $diagnosis->id;
+                        return $doctor->id;
                     })
-                    ->createOptionModalHeading('إضافة تشخيص جديد')
+                    ->createOptionModalHeading('إضافة طبيب محول جديد')
                     ->suffixIcon('heroicon-o-plus-circle')
-                    ->helperText('اختر التشخيص المبدئي أو أضف جديد')
+                    ->helperText('اختر الطبيب المحول أو أضف طبيباً جديداً')
                     ->columnSpan(2),
+
+                // تفاصيل الإحالة
+                Textarea::make('medicalAttachment.medical_referral')
+                    ->label('تفاصيل الإحالة الطبية')
+                    ->rows(3)
+                    ->placeholder('تفاصيل الإحالة، المشفى، التشخيص المبدئي، الإجراءات المطلوبة...')
+                    ->helperText('معلومات إضافية عن الإحالة الطبية')
+                    ->columnSpanFull(),
             ]);
     }
 }

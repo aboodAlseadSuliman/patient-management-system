@@ -44,13 +44,13 @@ class HospitalConsultationInfolist
                         TextEntry::make('source')
                             ->label('المصدر')
                             ->badge()
-                            ->formatStateUsing(fn (string $state): string => match ($state) {
+                            ->formatStateUsing(fn(string $state): string => match ($state) {
                                 'hospital' => 'مشفى',
                                 'consultation' => 'استشارة',
                                 'private' => 'خاص',
                                 default => $state,
                             })
-                            ->color(fn (string $state): string => match ($state) {
+                            ->color(fn(string $state): string => match ($state) {
                                 'hospital' => 'success',
                                 'consultation' => 'info',
                                 'private' => 'warning',
@@ -68,7 +68,7 @@ class HospitalConsultationInfolist
                             ->color('info')
                             ->placeholder('-'),
                     ])
-                    ->columns(3)
+                    ->columns(2)
                     ->collapsible(),
 
                 Section::make('التفاصيل الطبية')
@@ -101,13 +101,13 @@ class HospitalConsultationInfolist
                         TextEntry::make('follow_up_status')
                             ->label('حالة المتابعة')
                             ->badge()
-                            ->formatStateUsing(fn (?string $state): string => match ($state) {
+                            ->formatStateUsing(fn(?string $state): string => match ($state) {
                                 'cured' => 'شفاء',
                                 'ongoing' => 'مستمر',
                                 'deceased' => 'وفاة',
                                 default => '-',
                             })
-                            ->color(fn (?string $state): string => match ($state) {
+                            ->color(fn(?string $state): string => match ($state) {
                                 'cured' => 'success',
                                 'ongoing' => 'warning',
                                 'deceased' => 'danger',
@@ -149,7 +149,7 @@ class HospitalConsultationInfolist
                         TextEntry::make('deleted_at')
                             ->label('تاريخ الحذف')
                             ->dateTime('Y-m-d H:i')
-                            ->visible(fn (HospitalConsultation $record): bool => $record->trashed())
+                            ->visible(fn(HospitalConsultation $record): bool => $record->trashed())
                             ->badge()
                             ->color('danger'),
                     ])

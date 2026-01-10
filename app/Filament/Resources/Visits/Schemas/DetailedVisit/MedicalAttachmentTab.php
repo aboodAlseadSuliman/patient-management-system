@@ -21,88 +21,7 @@ class MedicalAttachmentTab
             ->badgeColor('success')
             ->schema([
 
-                // ==================== 1. الإحالة الطبية ====================
-                Section::make('الإحالة الطبية')
-                    ->icon('heroicon-o-paper-clip')
-                    ->description('إحالة من طبيب آخر أو مشفى')
-                    ->schema([
-                        Select::make('referring_doctor_id')
-                            ->label('الطبيب المحول')
-                            ->relationship('referringDoctor', 'first_name')
-                            ->getOptionLabelFromRecordUsing(function ($record) {
-                                return "{$record->first_name} {$record->last_name}" .
-                                    ($record->specialty ? " - {$record->specialty}" : '');
-                            })
-                            ->searchable(['first_name', 'last_name', 'specialty'])
-                            ->preload()
-                            ->createOptionForm([
-                                Section::make('معلومات الطبيب المحول')
-                                    ->icon('heroicon-o-user-circle')
-                                    ->schema([
-                                        TextInput::make('first_name')
-                                            ->label('الاسم الأول')
-                                            ->required()
-                                            ->maxLength(255)
-                                            ->placeholder('أحمد')
-                                            ->columnSpan(1),
-
-                                        TextInput::make('last_name')
-                                            ->label('الكنية')
-                                            ->required()
-                                            ->maxLength(255)
-                                            ->placeholder('محمد')
-                                            ->columnSpan(1),
-
-                                        TextInput::make('specialty')
-                                            ->label('التخصص')
-                                            ->maxLength(255)
-                                            ->placeholder('باطنة، جراحة، أطفال...')
-                                            ->columnSpan(2),
-
-                                        TextInput::make('mobile_phone')
-                                            ->label('رقم الجوال')
-                                            ->tel()
-                                            ->maxLength(20)
-                                            ->placeholder('0912345678')
-                                            ->columnSpan(2),
-
-                                        TextInput::make('clinic_address')
-                                            ->label('عنوان العيادة')
-                                            ->maxLength(255)
-                                            ->placeholder('دمشق، المزة...')
-                                            ->columnSpan(2),
-                                    ])
-                                    ->columns(4),
-                            ])
-                            ->createOptionUsing(function (array $data): int {
-                                $doctor = ReferringDoctor::create($data);
-
-                                Notification::make()
-                                    ->title('تم إضافة الطبيب بنجاح')
-                                    ->body("د. {$doctor->first_name} {$doctor->last_name}")
-                                    ->success()
-                                    ->icon('heroicon-o-check-circle')
-                                    ->duration(3000)
-                                    ->send();
-
-                                return $doctor->id;
-                            })
-                            ->createOptionModalHeading('إضافة طبيب محول جديد')
-                            ->suffixIcon('heroicon-o-plus-circle')
-                            ->helperText('اختر الطبيب المحول أو أضف طبيباً جديداً')
-                            ->columnSpan(2),
-
-                        Textarea::make('medicalAttachment.medical_referral')
-                            ->label('تفاصيل الإحالة الطبية')
-                            ->rows(4)
-                            ->placeholder('تفاصيل الإحالة، المشفى، التشخيص المبدئي، الإجراءات المطلوبة...')
-                            ->helperText('معلومات إضافية عن الإحالة الطبية')
-                            ->columnSpanFull(),
-                    ])
-                    ->columns(2)
-                    ->collapsible(),
-
-                // ==================== 2. الأشعة ====================
+                // ==================== 1. الأشعة ====================
                 Section::make('الأشعة والتصوير الطبي')
                     ->icon('heroicon-o-camera')
                     ->description('نتائج الأشعة والفحوصات التصويرية')
@@ -133,7 +52,7 @@ class MedicalAttachmentTab
                     ->columns(4)
                     ->collapsible(),
 
-                // ==================== 3. التنظير ====================
+                // ==================== 2. التنظير ====================
                 Section::make('التنظير (Endoscopy)')
                     ->icon('heroicon-o-magnifying-glass-circle')
                     ->description('نتائج التنظير الهضمي')
@@ -164,7 +83,7 @@ class MedicalAttachmentTab
                     ->columns(4)
                     ->collapsible(),
 
-                // ==================== 4. التشريح المرضي ====================
+                // ==================== 3. التشريح المرضي ====================
                 Section::make('التشريح المرضي (Pathology)')
                     ->icon('heroicon-o-beaker')
                     ->description('نتائج الخزعات والفحوصات النسيجية')
@@ -207,7 +126,7 @@ class MedicalAttachmentTab
                     ->columns(4)
                     ->collapsible(),
 
-                // ==================== 5. المخبر ====================
+                // ==================== 4. المخبر ====================
                 Section::make('التحاليل المخبرية')
                     ->icon('heroicon-o-clipboard-document-list')
                     ->description('ملاحظات إضافية للتحاليل (التحاليل التفصيلية في تبويب منفصل)')

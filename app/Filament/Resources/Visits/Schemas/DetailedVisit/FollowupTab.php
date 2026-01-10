@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Visits\Schemas\DetailedVisit;
 
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Section;
@@ -23,79 +24,36 @@ class FollowupTab
                     ->icon('heroicon-o-clipboard-document-list')
                     ->description('التشخيصات المحتملة التي تحتاج إلى دراسة ومتابعة')
                     ->schema([
-                        Checkbox::make('followup.ulcers_for_study')
-                            ->label('قرحات للدراسة (Ulcers for study)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.dysphagia_for_study')
-                            ->label('عسرة بلع للدراسة (Dysphagia for study)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.suspected_gerd')
-                            ->label('قلس مريئي مشتبه (Suspected GERD)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.ibs_suspected')
-                            ->label('كولون عصبي مشتبه (IBS Suspected)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.suspected_malabsorption')
-                            ->label('سوء امتصاص مشتبه (Suspected Malabsorption)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.suspected_celiac')
-                            ->label('داء زلاقي مشتبه (Suspected Celiac)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.suspected_ibd')
-                            ->label('داء معوي التهابي مشتبه (Suspected IBD)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.suspected_hemorrhoids_fissure')
-                            ->label('بواسير أو شق شرجي مشتبه (Suspected Hemorrhoids/Fissure)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.suspected_liver_disease')
-                            ->label('مرض كبدي مشتبه (Suspected Liver Disease)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.suspected_hepatitis_a')
-                            ->label('التهاب كبد A مشتبه (Suspected Hepatitis A)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.suspected_hepatitis_b')
-                            ->label('التهاب كبد B مشتبه (Suspected Hepatitis B)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.suspected_cirrhosis')
-                            ->label('تشمع كبد مشتبه (Suspected Cirrhosis)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.suspected_gallstones')
-                            ->label('حصيات مرارية مشتبهة (Suspected Gallstones)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.suspected_pancreatitis')
-                            ->label('التهاب بنكرياس مشتبه (Suspected Pancreatitis)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.gi_bleeding_for_study')
-                            ->label('نزف هضمي للدراسة (GI Bleeding for study)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.acute_abdomen_for_study')
-                            ->label('بطن حادة للدراسة (Acute Abdomen for study)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.suspected_malignancy')
-                            ->label('ورم خبيث مشتبه (Suspected Malignancy)')
-                            ->inline(false),
-
-                        Checkbox::make('followup.other_suspected_diagnosis')
-                            ->label('تشخيصات أخرى مشتبهة (Other Suspected Diagnosis)')
-                            ->inline(false),
+                        CheckboxList::make('preliminaryDiagnoses')
+                            ->relationship('preliminaryDiagnoses', 'name_ar')
+                            ->options(function () {
+                                return \App\Models\Diagnosis::where('is_active', true)
+                                    ->orderBy('category')
+                                    ->orderBy('name_ar')
+                                    ->get()
+                                    ->mapWithKeys(function ($diagnosis) {
+                                        $label = $diagnosis->name_ar;
+                                        if ($diagnosis->name_en) {
+                                            $label .= " ({$diagnosis->name_en})";
+                                        }
+                                        return [$diagnosis->id => $label];
+                                    });
+                            })
+                            ->descriptions(function () {
+                                return \App\Models\Diagnosis::where('is_active', true)
+                                    ->orderBy('category')
+                                    ->orderBy('name_ar')
+                                    ->get()
+                                    ->mapWithKeys(function ($diagnosis) {
+                                        return [$diagnosis->id => $diagnosis->category ?? ''];
+                                    });
+                            })
+                            ->searchable()
+                            ->bulkToggleable()
+                            ->gridDirection('row')
+                            ->columns(3)
+                            ->columnSpanFull(),
                     ])
-                    ->columns(3)
                     ->collapsible()
                     ->collapsed(),
 

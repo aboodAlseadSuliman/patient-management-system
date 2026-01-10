@@ -72,6 +72,13 @@ class Visit extends Model
         return $this->belongsTo(Diagnosis::class, 'preliminary_diagnosis_id');
     }
 
+    public function preliminaryDiagnoses()
+    {
+        return $this->belongsToMany(Diagnosis::class, 'visit_preliminary_diagnoses', 'visit_id', 'diagnosis_id')
+            ->withPivot('notes')
+            ->withTimestamps();
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

@@ -138,14 +138,48 @@ class TreatmentPlanInfoTab
                 // ==================== 3. التحاليل المطلوبة ====================
                 Section::make('التحاليل المطلوبة')
                     ->icon('heroicon-o-beaker')
+                    ->description('التحاليل المخبرية المطلوبة مع التعليمات')
                     ->schema([
-                        TextEntry::make('treatmentPlan.requested_lab_tests')
-                            ->label('التحاليل المطلوبة')
+                        TextEntry::make('labTests')
+                            ->label('')
+                            ->formatStateUsing(function ($state, $record) {
+                                // تحميل العلاقة إذا لم تكن محملة
+                                if (!$record->relationLoaded('labTests')) {
+                                    $record->load('labTests');
+                                }
+
+                                $labTests = $record->labTests;
+
+                                if ($labTests->isEmpty()) {
+                                    return 'لا توجد تحاليل مطلوبة';
+                                }
+
+                                $items = $labTests->map(function ($labTest, $index) {
+                                    $number = $index + 1;
+                                    $text = "**{$number}. {$labTest->name_ar}**";
+
+                                    if ($labTest->abbreviation) {
+                                        $text .= " ({$labTest->abbreviation})";
+                                    }
+
+                                    if ($labTest->name_en) {
+                                        $text .= " - {$labTest->name_en}";
+                                    }
+
+                                    if ($labTest->pivot && $labTest->pivot->notes) {
+                                        $text .= "\n\n   📋 **التعليمات:** " . $labTest->pivot->notes;
+                                    }
+
+                                    return $text;
+                                })->join("\n\n---\n\n");
+
+                                return $items;
+                            })
                             ->markdown()
-                            ->placeholder('لا توجد تحاليل مطلوبة')
                             ->columnSpanFull(),
                     ])
-                    ->collapsible(),
+                    ->collapsible()
+                    ->visible(fn ($record) => $record->labTests && $record->labTests->count() > 0),
 
                 // ==================== 4. الأشعة المطلوبة ====================
                 Section::make('الأشعة المطلوبة')
