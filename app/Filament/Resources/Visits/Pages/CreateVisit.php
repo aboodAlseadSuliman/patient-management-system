@@ -168,5 +168,32 @@ class CreateVisit extends CreateRecord
         } else {
             \Log::warning('CreateVisit - medicationsData is empty or not set');
         }
+
+        // ==================== حفظ الأشعة المطلوبة ====================
+        if (isset($data['imagingStudiesData']) && !empty($data['imagingStudiesData'])) {
+            \Log::info('CreateVisit - Starting imaging studies sync');
+            $syncData = [];
+
+            foreach ($data['imagingStudiesData'] as $imagingData) {
+                \Log::info('CreateVisit - Processing imaging study:', ['imagingData' => $imagingData]);
+                if (isset($imagingData['imaging_study_id'])) {
+                    $syncData[$imagingData['imaging_study_id']] = [
+                        'notes' => $imagingData['notes'] ?? null,
+                        'findings' => null,
+                        'impression' => null,
+                        'study_date' => null,
+                    ];
+                }
+            }
+            \Log::info('CreateVisit - Imaging studies sync data prepared:', ['syncData' => $syncData]);
+            $visit->imagingStudies()->sync($syncData);
+            \Log::info('CreateVisit - Imaging studies sync completed');
+
+            // التحقق من الحفظ
+            $savedCount = $visit->imagingStudies()->count();
+            \Log::info('CreateVisit - Imaging studies saved count:', ['count' => $savedCount]);
+        } else {
+            \Log::warning('CreateVisit - imagingStudiesData is empty or not set');
+        }
     }
 }

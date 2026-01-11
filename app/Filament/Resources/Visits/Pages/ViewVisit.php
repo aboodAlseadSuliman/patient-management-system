@@ -108,6 +108,25 @@ class ViewVisit extends ViewRecord
                     return $this->exportMedicationsToPdf();
                 }),
 
+            // زر طباعة الأشعة
+            Action::make('printImagingStudies')
+                ->label('طباعة الأشعة')
+                ->icon('heroicon-o-printer')
+                ->color('orange')
+                ->visible(fn () => $this->record->imagingStudies()->exists())
+                ->url(fn () => route('visits.print-imaging-studies', $this->record))
+                ->openUrlInNewTab(),
+
+            // زر تصدير PDF الأشعة
+            Action::make('exportImagingStudiesPdf')
+                ->label('تحميل PDF الأشعة')
+                ->icon('heroicon-o-document-arrow-down')
+                ->color('orange')
+                ->visible(fn () => $this->record->imagingStudies()->exists())
+                ->action(function () {
+                    return $this->exportImagingStudiesToPdf();
+                }),
+
             EditAction::make(),
         ];
     }
@@ -185,6 +204,40 @@ class ViewVisit extends ViewRecord
         }, $fileName);
     }
 
+    protected function exportImagingStudiesToPdf()
+    {
+        $visit = $this->record->load(['patient', 'imagingStudies']);
+
+        // استخدام mPDF لدعم العربية
+        $mpdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'orientation' => 'P',
+            'margin_left' => 15,
+            'margin_right' => 15,
+            'margin_top' => 20,
+            'margin_bottom' => 20,
+            'autoScriptToLang' => true,
+            'autoLangToFont' => true,
+            'default_font' => 'dejavusans',
+        ]);
+
+        // تحميل المحتوى من Blade Template
+        $html = view('pdf.imaging-studies', [
+            'visit' => $visit,
+            'patient' => $visit->patient,
+            'imagingStudies' => $visit->imagingStudies,
+        ])->render();
+
+        $mpdf->WriteHTML($html);
+
+        $fileName = 'imaging-studies-' . $visit->patient->file_number . '-' . now()->format('Y-m-d') . '.pdf';
+
+        return response()->streamDownload(function () use ($mpdf) {
+            echo $mpdf->Output('', 'S');
+        }, $fileName);
+    }
+
     /**
      * تحميل جميع العلاقات المطلوبة لعرض الزيارة
      */
@@ -204,6 +257,7 @@ class ViewVisit extends ViewRecord
                 'labTests',
                 'preliminaryDiagnoses',
                 'medications',
+                'imagingStudies',
             ]);
     }
 }

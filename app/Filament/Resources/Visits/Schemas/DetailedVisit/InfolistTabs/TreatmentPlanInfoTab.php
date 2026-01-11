@@ -305,14 +305,58 @@ class TreatmentPlanInfoTab
                 // ==================== 5. الأشعة المطلوبة ====================
                 Section::make('الأشعة المطلوبة')
                     ->icon('heroicon-o-camera')
+                    ->description('الفحوصات الإشعاعية المطلوبة مع التعليمات')
                     ->schema([
-                        TextEntry::make('treatmentPlan.requested_imaging')
-                            ->label('الأشعة المطلوبة')
+                        TextEntry::make('imaging_studies_display')
+                            ->label(false)
+                            ->state(function ($record) {
+                                $record->load('imagingStudies');
+
+                                $imagingStudies = $record->imagingStudies;
+
+                                if ($imagingStudies->isEmpty()) {
+                                    return 'لا توجد أشعة مطلوبة';
+                                }
+
+                                $items = [];
+                                foreach ($imagingStudies as $index => $imaging) {
+                                    $number = $index + 1;
+                                    $text = "**{$number}. {$imaging->name_ar}**";
+
+                                    // نوع الأشعة
+                                    $types = [
+                                        'x-ray' => 'أشعة عادية',
+                                        'ct' => 'أشعة مقطعية',
+                                        'mri' => 'رنين مغناطيسي',
+                                        'ultrasound' => 'إيكو/سونار',
+                                        'doppler' => 'دوبلر',
+                                        'other' => 'أخرى',
+                                    ];
+                                    $typeLabel = $types[$imaging->type] ?? $imaging->type;
+                                    $text .= " ({$typeLabel})";
+
+                                    if ($imaging->body_part) {
+                                        $text .= " - {$imaging->body_part}";
+                                    }
+
+                                    if ($imaging->abbreviation) {
+                                        $text .= " ({$imaging->abbreviation})";
+                                    }
+
+                                    if ($imaging->pivot && $imaging->pivot->notes) {
+                                        $text .= "\n\n   📋 **ملاحظات:** " . $imaging->pivot->notes;
+                                    }
+
+                                    $items[] = $text;
+                                }
+
+                                return implode("\n\n---\n\n", $items);
+                            })
                             ->markdown()
-                            ->placeholder('لا توجد أشعة مطلوبة')
                             ->columnSpanFull(),
                     ])
-                    ->collapsible(),
+                    ->collapsible()
+                    ->visible(fn ($record) => $record->imagingStudies && $record->imagingStudies->count() > 0),
 
                 // ==================== 6. التنظير ====================
                 Section::make('التنظير المطلوب')

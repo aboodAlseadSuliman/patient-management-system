@@ -369,11 +369,74 @@ class TreatmentPlanTab
                 Section::make('الأشعة المطلوبة')
                     ->icon('heroicon-o-camera')
                     ->schema([
-                        Textarea::make('treatmentPlan.requested_imaging')
-                            ->label('الأشعة المطلوبة')
-                            ->rows(3)
-                            ->placeholder('أشعة بطن، CT، MRI، إيكو...')
-                            ->columnSpanFull(),
+                        Repeater::make('imagingStudiesData')
+                            ->label('الأشعة')
+                            ->schema([
+                                Select::make('imaging_study_id')
+                                    ->label('نوع الأشعة')
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
+                                    ->options(function () {
+                                        return \App\Models\ImagingStudy::where('is_active', true)
+                                            ->orderBy('type')
+                                            ->orderBy('name_ar')
+                                            ->get()
+                                            ->mapWithKeys(function ($imaging) {
+                                                $label = $imaging->name_ar;
+
+                                                // إضافة نوع الأشعة
+                                                $types = [
+                                                    'x-ray' => 'أشعة عادية',
+                                                    'ct' => 'أشعة مقطعية',
+                                                    'mri' => 'رنين مغناطيسي',
+                                                    'ultrasound' => 'إيكو/سونار',
+                                                    'doppler' => 'دوبلر',
+                                                    'other' => 'أخرى',
+                                                ];
+                                                $label = ($types[$imaging->type] ?? $imaging->type) . ' - ' . $label;
+
+                                                if ($imaging->body_part) {
+                                                    $label .= " ({$imaging->body_part})";
+                                                }
+                                                if ($imaging->abbreviation) {
+                                                    $label .= " - {$imaging->abbreviation}";
+                                                }
+                                                return [$imaging->id => $label];
+                                            });
+                                    })
+                                    ->columnSpan(2),
+
+                                Textarea::make('notes')
+                                    ->label('ملاحظات وتعليمات')
+                                    ->placeholder('مثال: على الريق، مع الصبغة، بدون صبغة، مع تباين...')
+                                    ->rows(2)
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(2)
+                            ->reorderable(false)
+                            ->itemLabel(fn (array $state): ?string =>
+                                \App\Models\ImagingStudy::find($state['imaging_study_id'])?->name_ar ?? 'أشعة جديدة'
+                            )
+                            ->addActionLabel('إضافة أشعة')
+                            ->defaultItems(0)
+                            ->columnSpanFull()
+                            ->afterStateHydrated(function ($component, $state, $record) {
+                                if ($record) {
+                                    $record->load('imagingStudies');
+
+                                    if ($record->imagingStudies->count() > 0) {
+                                        $data = $record->imagingStudies->map(function ($imaging) {
+                                            return [
+                                                'imaging_study_id' => $imaging->id,
+                                                'notes' => $imaging->pivot->notes,
+                                            ];
+                                        })->toArray();
+
+                                        $component->state($data);
+                                    }
+                                }
+                            }),
                     ])
                     ->collapsible(),
 

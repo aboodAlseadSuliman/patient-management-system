@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LabTestPrintController;
 use App\Http\Controllers\MedicationPrintController;
+use App\Http\Controllers\ImagingStudyPrintController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -19,4 +20,8 @@ Route::middleware(['auth'])->group(function () {
     // مسار الطباعة المباشرة للأدوية
     Route::get('/visits/{visit}/print-medications', [MedicationPrintController::class, 'print'])
         ->name('visits.print-medications');
+
+    // مسار الطباعة المباشرة للأشعة
+    Route::get('/visits/{visit}/print-imaging-studies', [ImagingStudyPrintController::class, 'print'])
+        ->name('visits.print-imaging-studies');
 });
