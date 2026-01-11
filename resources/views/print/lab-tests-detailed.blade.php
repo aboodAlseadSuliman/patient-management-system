@@ -101,13 +101,35 @@
             border-radius: 4px;
         }
 
+        .test-list {
+            counter-reset: test-counter;
+        }
+
         .test-item {
-            padding: 12px;
+            counter-increment: test-counter;
+            padding: 10px 35px 10px 12px;
             margin-bottom: 10px;
             background: #f9fafb;
             border: 1px solid #e5e7eb;
             border-radius: 6px;
             border-right: 3px solid #3b82f6;
+            position: relative;
+        }
+
+        .test-item::before {
+            content: counter(test-counter);
+            position: absolute;
+            right: 8px;
+            top: 10px;
+            background: #2563eb;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+            font-size: 12px;
         }
 
         .test-header {
@@ -115,6 +137,7 @@
             font-weight: 600;
             color: #1f2937;
             margin-bottom: 4px;
+            /* margin-right: 25px; */
         }
 
         .test-abbr {
@@ -230,10 +253,11 @@
     <div class="tests-section">
         <h2>التحاليل المطلوبة ({{ $labTests->count() }} {{ $labTests->count() == 1 ? 'تحليل' : 'تحاليل' }})</h2>
 
-        @foreach($labTests as $index => $labTest)
-        <div class="test-item">
-            <div class="test-header">
-                {{ $index + 1 }}. {{ $labTest->name_ar }}
+        <div class="test-list">
+            @foreach($labTests as $index => $labTest)
+            <div class="test-item">
+                <div class="test-header">
+                    {{ $labTest->name_ar }}
                 @if($labTest->abbreviation)
                     <span class="test-abbr">({{ $labTest->abbreviation }})</span>
                 @endif
@@ -248,8 +272,9 @@
                 <div class="test-notes-content">{{ $labTest->pivot->notes }}</div>
             </div>
             @endif
+            </div>
+            @endforeach
         </div>
-        @endforeach
     </div>
 
     <script>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -135,7 +136,7 @@
             font-size: 14px;
             font-weight: 600;
             color: #1f2937;
-            margin-right: 25px;
+            /* margin-right: 25px; */
         }
 
         .test-abbr {
@@ -219,6 +220,7 @@
         }
     </style>
 </head>
+
 <body>
     <button onclick="window.print()" class="print-button no-print">🖨️ طباعة</button>
 
@@ -247,7 +249,8 @@
             </div>
             <div class="info-item">
                 <span class="info-label">تاريخ الزيارة:</span>
-                <span class="info-value">{{ $visit->visit_date ? \Carbon\Carbon::parse($visit->visit_date)->locale('ar')->isoFormat('D MMMM YYYY') : 'غير محدد' }}</span>
+                <span
+                    class="info-value">{{ $visit->visit_date ? \Carbon\Carbon::parse($visit->visit_date)->locale('ar')->isoFormat('D MMMM YYYY') : 'غير محدد' }}</span>
             </div>
         </div>
     </div>
@@ -261,11 +264,11 @@
                 <div class="test-name">
                     {{ $labTest->name_ar }}
                     @if($labTest->abbreviation)
-                        <span class="test-abbr">({{ $labTest->abbreviation }})</span>
+                    <span class="test-abbr">({{ $labTest->abbreviation }})</span>
                     @endif
                 </div>
                 @if($labTest->name_en)
-                    <div class="test-name-en">{{ $labTest->name_en }}</div>
+                <div class="test-name-en">{{ $labTest->name_en }}</div>
                 @endif
             </div>
             @endforeach
@@ -292,4 +295,5 @@
         };
     </script>
 </body>
+
 </html>
