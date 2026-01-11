@@ -96,7 +96,9 @@ class Visit extends Model
 
     public function medications()
     {
-        return $this->hasMany(VisitMedication::class);
+        return $this->belongsToMany(Medication::class, 'visit_medications')
+            ->withPivot(['dosage', 'frequency', 'duration', 'instructions', 'notes'])
+            ->withTimestamps();
     }
 
     public function attachments()
