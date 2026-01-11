@@ -15,10 +15,46 @@ class ViewVisit extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            // زر تصدير الطريقة التفصيلية
+            // زر طباعة الطريقة التفصيلية
+            Action::make('printDetailedLabTests')
+                ->label('طباعة التحاليل المفصلة')
+                ->icon('heroicon-o-printer')
+                ->color('success')
+                ->visible(function () {
+                    if (!$this->record->labTests()->exists()) {
+                        return false;
+                    }
+
+                    $this->record->load('treatmentPlan');
+                    $method = $this->record->treatmentPlan?->lab_tests_input_method ?? 'detailed';
+
+                    return $method === 'detailed';
+                })
+                ->url(fn () => route('visits.print-lab-tests-detailed', $this->record))
+                ->openUrlInNewTab(),
+
+            // زر طباعة الطريقة البسيطة
+            Action::make('printSimpleLabTests')
+                ->label('طباعة قائمة التحاليل')
+                ->icon('heroicon-o-printer')
+                ->color('info')
+                ->visible(function () {
+                    if (!$this->record->labTests()->exists()) {
+                        return false;
+                    }
+
+                    $this->record->load('treatmentPlan');
+                    $method = $this->record->treatmentPlan?->lab_tests_input_method ?? 'detailed';
+
+                    return $method === 'simple';
+                })
+                ->url(fn () => route('visits.print-lab-tests-simple', $this->record))
+                ->openUrlInNewTab(),
+
+            // زر تصدير PDF الطريقة التفصيلية
             Action::make('exportDetailedLabTestsPdf')
-                ->label('تصدير التحاليل المفصلة PDF')
-                ->icon('heroicon-o-document-text')
+                ->label('تحميل PDF المفصل')
+                ->icon('heroicon-o-document-arrow-down')
                 ->color('success')
                 ->visible(function () {
                     if (!$this->record->labTests()->exists()) {
@@ -34,10 +70,10 @@ class ViewVisit extends ViewRecord
                     return $this->exportLabTestsToPdf('detailed');
                 }),
 
-            // زر تصدير الطريقة البسيطة
+            // زر تصدير PDF الطريقة البسيطة
             Action::make('exportSimpleLabTestsPdf')
-                ->label('تصدير قائمة التحاليل PDF')
-                ->icon('heroicon-o-list-bullet')
+                ->label('تحميل PDF القائمة')
+                ->icon('heroicon-o-document-arrow-down')
                 ->color('info')
                 ->visible(function () {
                     if (!$this->record->labTests()->exists()) {
