@@ -136,7 +136,7 @@
             font-size: 14px;
             font-weight: 600;
             color: #1f2937;
-            margin-right: 25px;
+            /* margin-right: 25px; */
         }
 
         .test-abbr {
