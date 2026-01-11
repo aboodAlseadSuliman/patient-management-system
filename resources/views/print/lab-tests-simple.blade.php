@@ -107,7 +107,7 @@
 
         .test-item {
             counter-increment: test-counter;
-            padding: 10px 12px 10px 35px;
+            padding: 10px 35px 10px 12px;
             margin-bottom: 6px;
             background: #ffffff;
             border: 1px solid #e5e7eb;
@@ -135,6 +135,7 @@
             font-size: 14px;
             font-weight: 600;
             color: #1f2937;
+            margin-right: 25px;
         }
 
         .test-abbr {
