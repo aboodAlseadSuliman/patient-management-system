@@ -119,8 +119,7 @@
             content: counter(test-counter);
             position: absolute;
             right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
+            top: 10px;
             background: #10b981;
             color: white;
             width: 24px;
