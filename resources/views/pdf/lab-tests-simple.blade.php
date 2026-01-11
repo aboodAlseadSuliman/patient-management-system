@@ -109,7 +109,7 @@
 
         .test-item {
             counter-increment: test-counter;
-            padding: 12px 15px;
+            padding: 10px 35px 10px 12px;
             margin-bottom: 8px;
             background: #ffffff;
             border: 1px solid #e5e7eb;
@@ -120,16 +120,15 @@
         .test-item::before {
             content: counter(test-counter);
             position: absolute;
-            right: -5px;
-            top: 50%;
-            transform: translateY(-50%);
+            right: 8px;
+            top: 8px;
             background: #10b981;
             color: white;
-            width: 28px;
-            height: 28px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             text-align: center;
-            line-height: 28px;
+            line-height: 26px;
             font-weight: bold;
             font-size: 13px;
         }
@@ -138,7 +137,7 @@
             font-size: 16px;
             font-weight: 600;
             color: #1f2937;
-            margin-right: 35px;
+            margin-right: 25px;
         }
 
         .test-abbr {
