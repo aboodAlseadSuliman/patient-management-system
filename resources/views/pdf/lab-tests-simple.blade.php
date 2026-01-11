@@ -128,9 +128,8 @@
             width: 28px;
             height: 28px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            text-align: center;
+            line-height: 28px;
             font-weight: bold;
             font-size: 13px;
         }
