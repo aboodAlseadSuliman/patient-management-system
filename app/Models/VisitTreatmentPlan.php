@@ -16,8 +16,9 @@ class VisitTreatmentPlan extends Model
         'hepatitis_b_instructions', 'cirrhosis_instructions',
         // الوصفة الدوائية (4)
         'medication_name', 'medication_form', 'usage_instructions', 'duration',
-        // التحاليل والأشعة (2)
+        // التحاليل والأشعة (4)
         'requested_lab_tests', 'requested_imaging',
+        'lab_tests_input_method', 'lab_tests_simple_notes',
         // التنظير (5)
         'needs_upper_endoscopy', 'needs_colonoscopy', 'needs_ercp',
         'needs_guided_biopsy', 'endoscopy_notes',

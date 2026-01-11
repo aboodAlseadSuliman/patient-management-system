@@ -140,21 +140,65 @@ class TreatmentPlanInfoTab
                     ->icon('heroicon-o-beaker')
                     ->description('التحاليل المخبرية المطلوبة مع التعليمات')
                     ->schema([
-                        TextEntry::make('labTests')
-                            ->label('')
-                            ->formatStateUsing(function ($state, $record) {
-                                // تحميل العلاقة إذا لم تكن محملة
-                                if (!$record->relationLoaded('labTests')) {
-                                    $record->load('labTests');
-                                }
+                        TextEntry::make('treatmentPlan.lab_tests_input_method')
+                            ->label('طريقة الإدخال')
+                            ->badge()
+                            ->color(fn (string $state = null): string => match ($state) {
+                                'detailed' => 'success',
+                                'simple' => 'info',
+                                default => 'gray',
+                            })
+                            ->formatStateUsing(fn (string $state = null): string => match ($state) {
+                                'detailed' => 'تفصيلية - ملاحظات لكل تحليل',
+                                'simple' => 'بسيطة - ملاحظات عامة',
+                                default => 'تفصيلية',
+                            })
+                            ->columnSpanFull(),
+
+                        TextEntry::make('lab_tests_display')
+                            ->label(false)
+                            ->state(function ($record) {
+                                // تحميل العلاقات
+                                $record->load(['labTests', 'treatmentPlan']);
 
                                 $labTests = $record->labTests;
+                                $inputMethod = $record->treatmentPlan?->lab_tests_input_method ?? 'detailed';
 
                                 if ($labTests->isEmpty()) {
                                     return 'لا توجد تحاليل مطلوبة';
                                 }
 
-                                $items = $labTests->map(function ($labTest, $index) {
+                                // إذا كانت الطريقة البسيطة
+                                if ($inputMethod === 'simple') {
+                                    $items = [];
+                                    foreach ($labTests as $index => $labTest) {
+                                        $number = $index + 1;
+                                        $text = "**{$number}. {$labTest->name_ar}**";
+
+                                        if ($labTest->abbreviation) {
+                                            $text .= " ({$labTest->abbreviation})";
+                                        }
+
+                                        if ($labTest->name_en) {
+                                            $text .= " - {$labTest->name_en}";
+                                        }
+
+                                        $items[] = $text;
+                                    }
+
+                                    $result = implode("\n", $items);
+
+                                    // إضافة الملاحظات العامة
+                                    if ($record->treatmentPlan?->lab_tests_simple_notes) {
+                                        $result .= "\n\n---\n\n📋 **الملاحظات والتعليمات العامة:**\n\n" . $record->treatmentPlan->lab_tests_simple_notes;
+                                    }
+
+                                    return $result;
+                                }
+
+                                // الطريقة التفصيلية
+                                $items = [];
+                                foreach ($labTests as $index => $labTest) {
                                     $number = $index + 1;
                                     $text = "**{$number}. {$labTest->name_ar}**";
 
@@ -170,10 +214,10 @@ class TreatmentPlanInfoTab
                                         $text .= "\n\n   📋 **التعليمات:** " . $labTest->pivot->notes;
                                     }
 
-                                    return $text;
-                                })->join("\n\n---\n\n");
+                                    $items[] = $text;
+                                }
 
-                                return $items;
+                                return implode("\n\n---\n\n", $items);
                             })
                             ->markdown()
                             ->columnSpanFull(),

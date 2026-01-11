@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Visits\Schemas\DetailedVisit;
 
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -135,9 +136,22 @@ class TreatmentPlanTab
                 // ==================== 3. التحاليل المطلوبة ====================
                 Section::make('التحاليل المطلوبة')
                     ->icon('heroicon-o-beaker')
-                    ->description('اختر التحاليل المطلوبة وأضف التعليمات لكل تحليل')
+                    ->description('اختر طريقة إدخال التحاليل المناسبة لك')
                     ->schema([
+                        Radio::make('lab_tests_input_method')
+                            ->label('طريقة إدخال التحاليل')
+                            ->options([
+                                'detailed' => 'تفصيلية - ملاحظات لكل تحليل على حدة',
+                                'simple' => 'بسيطة - اختيار متعدد مع ملاحظات عامة',
+                            ])
+                            ->default('detailed')
+                            ->inline()
+                            ->live()
+                            ->columnSpanFull(),
+
+                        // الطريقة الأولى: Repeater (تفصيلية)
                         Repeater::make('labTestsData')
+                            ->label('التحاليل المطلوبة (الطريقة التفصيلية)')
                             ->schema([
                                 Select::make('lab_test_id')
                                     ->label('اسم التحليل')
@@ -178,6 +192,7 @@ class TreatmentPlanTab
                             ->addActionLabel('إضافة تحليل')
                             ->defaultItems(0)
                             ->columnSpanFull()
+                            ->visible(fn ($get) => $get('lab_tests_input_method') === 'detailed')
                             ->afterStateHydrated(function ($component, $state, $record) {
                                 \Log::info('TreatmentPlanTab - afterStateHydrated called', [
                                     'has_record' => $record !== null,
@@ -205,6 +220,49 @@ class TreatmentPlanTab
                                     }
                                 }
                             }),
+
+                        // الطريقة الثانية: Select متعدد (بسيطة)
+                        Select::make('labTestsSimple')
+                            ->label('التحاليل المطلوبة (الطريقة البسيطة)')
+                            ->multiple()
+                            ->searchable()
+                            ->preload()
+                            ->options(function () {
+                                return \App\Models\LabTest::where('is_active', true)
+                                    ->orderBy('category')
+                                    ->orderBy('name_ar')
+                                    ->get()
+                                    ->mapWithKeys(function ($labTest) {
+                                        $label = $labTest->name_ar;
+                                        if ($labTest->abbreviation) {
+                                            $label .= " ({$labTest->abbreviation})";
+                                        }
+                                        if ($labTest->name_en) {
+                                            $label .= " - {$labTest->name_en}";
+                                        }
+                                        return [$labTest->id => $label];
+                                    });
+                            })
+                            ->placeholder('اختر التحاليل المطلوبة...')
+                            ->helperText('يمكنك اختيار عدة تحاليل مرة واحدة')
+                            ->columnSpanFull()
+                            ->visible(fn ($get) => $get('lab_tests_input_method') === 'simple')
+                            ->afterStateHydrated(function ($component, $state, $record, $get) {
+                                if ($record) {
+                                    $record->load('labTests');
+                                    if ($record->labTests->count() > 0) {
+                                        $testIds = $record->labTests->pluck('id')->toArray();
+                                        $component->state($testIds);
+                                    }
+                                }
+                            }),
+
+                        Textarea::make('labTestsSimpleNotes')
+                            ->label('الملاحظات والتعليمات العامة')
+                            ->placeholder('مثال: جميع التحاليل على الريق، تجنب الأدوية قبل التحليل...')
+                            ->rows(3)
+                            ->columnSpanFull()
+                            ->visible(fn ($get) => $get('lab_tests_input_method') === 'simple'),
                     ])
                     ->collapsible(),
 

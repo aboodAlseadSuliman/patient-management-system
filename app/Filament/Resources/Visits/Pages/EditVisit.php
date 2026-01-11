@@ -163,6 +163,13 @@ class EditVisit extends EditRecord
             );
         }
 
+        // إضافة حقول التحاليل إلى treatmentPlan
+        if (!isset($data['treatmentPlan'])) {
+            $data['treatmentPlan'] = [];
+        }
+        $data['treatmentPlan']['lab_tests_input_method'] = $data['lab_tests_input_method'] ?? 'detailed';
+        $data['treatmentPlan']['lab_tests_simple_notes'] = $data['labTestsSimpleNotes'] ?? null;
+
         // تحديث أو إنشاء خطة العلاج
         if (isset($data['treatmentPlan'])) {
             $visit->treatmentPlan()->updateOrCreate(
@@ -180,9 +187,11 @@ class EditVisit extends EditRecord
         }
 
         // حفظ التحاليل المطلوبة
-        \Log::info('EditVisit - labTestsData exists:', ['exists' => isset($data['labTestsData'])]);
-        if (isset($data['labTestsData'])) {
-            \Log::info('EditVisit - Starting lab tests sync');
+        $labTestsInputMethod = $data['lab_tests_input_method'] ?? 'detailed';
+
+        if ($labTestsInputMethod === 'detailed' && isset($data['labTestsData'])) {
+            // الطريقة التفصيلية (Repeater)
+            \Log::info('EditVisit - Starting lab tests sync (detailed method)');
             $syncData = [];
             foreach ($data['labTestsData'] as $labTestData) {
                 if (isset($labTestData['lab_test_id'])) {
@@ -194,6 +203,24 @@ class EditVisit extends EditRecord
                     ];
                 }
             }
+            \Log::info('EditVisit - Sync data prepared:', ['syncData' => $syncData]);
+            $visit->labTests()->sync($syncData);
+            \Log::info('EditVisit - Sync completed');
+        } elseif ($labTestsInputMethod === 'simple' && isset($data['labTestsSimple'])) {
+            // الطريقة البسيطة (Select متعدد)
+            \Log::info('EditVisit - Starting lab tests sync (simple method)');
+            $syncData = [];
+            $generalNotes = $data['labTestsSimpleNotes'] ?? null;
+
+            foreach ($data['labTestsSimple'] as $labTestId) {
+                $syncData[$labTestId] = [
+                    'notes' => $generalNotes,
+                    'result' => null,
+                    'test_date' => null,
+                    'is_normal' => null,
+                ];
+            }
+
             \Log::info('EditVisit - Sync data prepared:', ['syncData' => $syncData]);
             $visit->labTests()->sync($syncData);
             \Log::info('EditVisit - Sync completed');

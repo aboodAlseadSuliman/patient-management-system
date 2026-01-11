@@ -7,7 +7,6 @@ use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Database\Eloquent\Model;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class ViewVisit extends ViewRecord
 {
@@ -16,21 +15,54 @@ class ViewVisit extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('exportLabTestsPdf')
-                ->label('تصدير التحاليل إلى PDF')
-                ->icon('heroicon-o-document-arrow-down')
+            // زر تصدير الطريقة التفصيلية
+            Action::make('exportDetailedLabTestsPdf')
+                ->label('تصدير التحاليل المفصلة PDF')
+                ->icon('heroicon-o-document-text')
                 ->color('success')
-                ->visible(fn () => $this->record->labTests()->exists())
+                ->visible(function () {
+                    if (!$this->record->labTests()->exists()) {
+                        return false;
+                    }
+
+                    $this->record->load('treatmentPlan');
+                    $method = $this->record->treatmentPlan?->lab_tests_input_method ?? 'detailed';
+
+                    return $method === 'detailed';
+                })
                 ->action(function () {
-                    return $this->exportLabTestsToPdf();
+                    return $this->exportLabTestsToPdf('detailed');
                 }),
+
+            // زر تصدير الطريقة البسيطة
+            Action::make('exportSimpleLabTestsPdf')
+                ->label('تصدير قائمة التحاليل PDF')
+                ->icon('heroicon-o-list-bullet')
+                ->color('info')
+                ->visible(function () {
+                    if (!$this->record->labTests()->exists()) {
+                        return false;
+                    }
+
+                    $this->record->load('treatmentPlan');
+                    $method = $this->record->treatmentPlan?->lab_tests_input_method ?? 'detailed';
+
+                    return $method === 'simple';
+                })
+                ->action(function () {
+                    return $this->exportLabTestsToPdf('simple');
+                }),
+
             EditAction::make(),
         ];
     }
 
-    protected function exportLabTestsToPdf()
+    protected function exportLabTestsToPdf(string $method = 'detailed')
     {
-        $visit = $this->record->load(['patient', 'labTests']);
+        $visit = $this->record->load(['patient', 'labTests', 'treatmentPlan']);
+
+        // تحديد Template المناسب
+        $template = $method === 'simple' ? 'pdf.lab-tests-simple' : 'pdf.lab-tests';
 
         // استخدام mPDF بدلاً من dompdf لدعم أفضل للعربية
         $mpdf = new \Mpdf\Mpdf([
@@ -46,8 +78,8 @@ class ViewVisit extends ViewRecord
             'default_font' => 'dejavusans',
         ]);
 
-        // تحميل المحتوى من Blade
-        $html = view('pdf.lab-tests', [
+        // تحميل المحتوى من Blade Template المناسب
+        $html = view($template, [
             'visit' => $visit,
             'patient' => $visit->patient,
             'labTests' => $visit->labTests,
@@ -55,9 +87,13 @@ class ViewVisit extends ViewRecord
 
         $mpdf->WriteHTML($html);
 
+        $fileName = $method === 'simple'
+            ? 'lab-tests-list-' . $visit->patient->file_number . '-' . now()->format('Y-m-d') . '.pdf'
+            : 'lab-tests-detailed-' . $visit->patient->file_number . '-' . now()->format('Y-m-d') . '.pdf';
+
         return response()->streamDownload(function () use ($mpdf) {
             echo $mpdf->Output('', 'S');
-        }, 'lab-tests-' . $visit->patient->file_number . '-' . now()->format('Y-m-d') . '.pdf');
+        }, $fileName);
     }
 
     /**

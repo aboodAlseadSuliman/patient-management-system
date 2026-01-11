@@ -73,6 +73,13 @@ class CreateVisit extends CreateRecord
             $visit->clinicalExamination()->create($data['clinicalExamination']);
         }
 
+        // إضافة حقول التحاليل إلى treatmentPlan
+        if (!isset($data['treatmentPlan'])) {
+            $data['treatmentPlan'] = [];
+        }
+        $data['treatmentPlan']['lab_tests_input_method'] = $data['lab_tests_input_method'] ?? 'detailed';
+        $data['treatmentPlan']['lab_tests_simple_notes'] = $data['labTestsSimpleNotes'] ?? null;
+
         // حفظ خطة العلاج
         if (isset($data['treatmentPlan']) && !empty(array_filter($data['treatmentPlan']))) {
             $visit->treatmentPlan()->create($data['treatmentPlan']);
@@ -84,8 +91,11 @@ class CreateVisit extends CreateRecord
         }
 
         // حفظ التحاليل المطلوبة
-        if (isset($data['labTestsData']) && !empty($data['labTestsData'])) {
-            \Log::info('CreateVisit - Starting lab tests sync');
+        $labTestsInputMethod = $data['lab_tests_input_method'] ?? 'detailed';
+
+        if ($labTestsInputMethod === 'detailed' && isset($data['labTestsData']) && !empty($data['labTestsData'])) {
+            // الطريقة التفصيلية (Repeater)
+            \Log::info('CreateVisit - Starting lab tests sync (detailed method)');
             $syncData = [];
             foreach ($data['labTestsData'] as $labTestData) {
                 \Log::info('CreateVisit - Processing lab test:', ['labTestData' => $labTestData]);
@@ -98,6 +108,28 @@ class CreateVisit extends CreateRecord
                     ];
                 }
             }
+            \Log::info('CreateVisit - Sync data prepared:', ['syncData' => $syncData]);
+            $visit->labTests()->sync($syncData);
+            \Log::info('CreateVisit - Sync completed');
+
+            // التحقق من الحفظ
+            $savedCount = $visit->labTests()->count();
+            \Log::info('CreateVisit - Lab tests saved count:', ['count' => $savedCount]);
+        } elseif ($labTestsInputMethod === 'simple' && isset($data['labTestsSimple']) && !empty($data['labTestsSimple'])) {
+            // الطريقة البسيطة (Select متعدد)
+            \Log::info('CreateVisit - Starting lab tests sync (simple method)');
+            $syncData = [];
+            $generalNotes = $data['labTestsSimpleNotes'] ?? null;
+
+            foreach ($data['labTestsSimple'] as $labTestId) {
+                $syncData[$labTestId] = [
+                    'notes' => $generalNotes,
+                    'result' => null,
+                    'test_date' => null,
+                    'is_normal' => null,
+                ];
+            }
+
             \Log::info('CreateVisit - Sync data prepared:', ['syncData' => $syncData]);
             $visit->labTests()->sync($syncData);
             \Log::info('CreateVisit - Sync completed');
