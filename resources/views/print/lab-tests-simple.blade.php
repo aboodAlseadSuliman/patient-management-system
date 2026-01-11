@@ -120,23 +120,23 @@
             content: counter(test-counter);
             position: absolute;
             right: 8px;
-            top: 10px;
+            top: 8px;
             background: #10b981;
             color: white;
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             text-align: center;
-            line-height: 24px;
+            line-height: 26px;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 13px;
         }
 
         .test-name {
             font-size: 14px;
             font-weight: 600;
             color: #1f2937;
-            /* margin-right: 25px; */
+            margin-right: 25px;
         }
 
         .test-abbr {
