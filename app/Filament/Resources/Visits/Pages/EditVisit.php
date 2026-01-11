@@ -230,5 +230,33 @@ class EditVisit extends EditRecord
         } else {
             \Log::warning('EditVisit - labTestsData is empty or not set');
         }
+
+        // ==================== حفظ الأدوية ====================
+        if (isset($data['medicationsData']) && !empty($data['medicationsData'])) {
+            \Log::info('EditVisit - Starting medications sync');
+            $syncData = [];
+
+            foreach ($data['medicationsData'] as $medicationData) {
+                \Log::info('EditVisit - Processing medication:', ['medicationData' => $medicationData]);
+                if (isset($medicationData['medication_id'])) {
+                    $syncData[$medicationData['medication_id']] = [
+                        'dosage' => $medicationData['dosage'] ?? null,
+                        'frequency' => $medicationData['frequency'] ?? null,
+                        'duration' => $medicationData['duration'] ?? null,
+                        'instructions' => $medicationData['instructions'] ?? null,
+                        'notes' => $medicationData['notes'] ?? null,
+                    ];
+                }
+            }
+            \Log::info('EditVisit - Medications sync data prepared:', ['syncData' => $syncData]);
+            $visit->medications()->sync($syncData);
+            \Log::info('EditVisit - Medications sync completed');
+
+            // التحقق من الحفظ
+            $savedCount = $visit->medications()->count();
+            \Log::info('EditVisit - Medications saved count:', ['count' => $savedCount]);
+        } else {
+            \Log::warning('EditVisit - medicationsData is empty or not set');
+        }
     }
 }

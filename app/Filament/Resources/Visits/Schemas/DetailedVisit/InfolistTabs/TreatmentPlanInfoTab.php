@@ -225,7 +225,84 @@ class TreatmentPlanInfoTab
                     ->collapsible()
                     ->visible(fn ($record) => $record->labTests && $record->labTests->count() > 0),
 
-                // ==================== 4. الأشعة المطلوبة ====================
+                // ==================== 4. الأدوية الموصوفة ====================
+                Section::make('الأدوية الموصوفة')
+                    ->icon('heroicon-o-beaker')
+                    ->description('الأدوية الموصوفة مع تعليمات الاستخدام')
+                    ->schema([
+                        TextEntry::make('medications_display')
+                            ->label(false)
+                            ->state(function ($record) {
+                                $record->load('medications');
+
+                                $medications = $record->medications;
+
+                                if ($medications->isEmpty()) {
+                                    return 'لا توجد أدوية موصوفة';
+                                }
+
+                                $items = [];
+                                foreach ($medications as $index => $medication) {
+                                    $number = $index + 1;
+                                    $text = "**{$number}. {$medication->name_ar}**";
+
+                                    if ($medication->strength) {
+                                        $text .= " ({$medication->strength})";
+                                    }
+
+                                    if ($medication->dosage_form) {
+                                        $forms = [
+                                            'tablet' => 'حبوب',
+                                            'capsule' => 'كبسولات',
+                                            'syrup' => 'شراب',
+                                            'injection' => 'حقن',
+                                            'cream' => 'كريم',
+                                            'ointment' => 'مرهم',
+                                            'drops' => 'قطرة',
+                                            'spray' => 'رذاذ',
+                                            'inhaler' => 'بخاخ',
+                                            'suppository' => 'تحاميل',
+                                            'patch' => 'لصقة',
+                                            'other' => 'أخرى',
+                                        ];
+                                        $text .= ' - ' . ($forms[$medication->dosage_form] ?? $medication->dosage_form);
+                                    }
+
+                                    // معلومات الجرعة والتكرار
+                                    $details = [];
+                                    if ($medication->pivot && $medication->pivot->dosage) {
+                                        $details[] = "**الجرعة:** {$medication->pivot->dosage}";
+                                    }
+                                    if ($medication->pivot && $medication->pivot->frequency) {
+                                        $details[] = "**التكرار:** {$medication->pivot->frequency}";
+                                    }
+                                    if ($medication->pivot && $medication->pivot->duration) {
+                                        $details[] = "**المدة:** {$medication->pivot->duration}";
+                                    }
+                                    if ($medication->pivot && $medication->pivot->instructions) {
+                                        $details[] = "**التعليمات:** {$medication->pivot->instructions}";
+                                    }
+
+                                    if (!empty($details)) {
+                                        $text .= "\n\n   " . implode(" | ", $details);
+                                    }
+
+                                    if ($medication->pivot && $medication->pivot->notes) {
+                                        $text .= "\n\n   📋 **ملاحظات:** " . $medication->pivot->notes;
+                                    }
+
+                                    $items[] = $text;
+                                }
+
+                                return implode("\n\n---\n\n", $items);
+                            })
+                            ->markdown()
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->visible(fn ($record) => $record->medications && $record->medications->count() > 0),
+
+                // ==================== 5. الأشعة المطلوبة ====================
                 Section::make('الأشعة المطلوبة')
                     ->icon('heroicon-o-camera')
                     ->schema([
@@ -237,7 +314,7 @@ class TreatmentPlanInfoTab
                     ])
                     ->collapsible(),
 
-                // ==================== 5. التنظير ====================
+                // ==================== 6. التنظير ====================
                 Section::make('التنظير المطلوب')
                     ->icon('heroicon-o-magnifying-glass-circle')
                     ->schema([
@@ -284,7 +361,7 @@ class TreatmentPlanInfoTab
                     ])
                     ->collapsible(),
 
-                // ==================== 6. الإحالة والاستشارات ====================
+                // ==================== 7. الإحالة والاستشارات ====================
                 Section::make('الإحالة والاستشارات')
                     ->icon('heroicon-o-users')
                     ->schema([

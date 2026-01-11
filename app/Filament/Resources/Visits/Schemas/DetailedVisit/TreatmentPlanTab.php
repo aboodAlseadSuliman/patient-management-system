@@ -266,7 +266,106 @@ class TreatmentPlanTab
                     ])
                     ->collapsible(),
 
-                // ==================== 4. الأشعة المطلوبة ====================
+                // ==================== 4. الأدوية الموصوفة ====================
+                Section::make('الأدوية الموصوفة')
+                    ->icon('heroicon-o-beaker')
+                    ->schema([
+                        Repeater::make('medicationsData')
+                            ->label('الأدوية')
+                            ->schema([
+                                Select::make('medication_id')
+                                    ->label('اسم الدواء')
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
+                                    ->options(function () {
+                                        return \App\Models\Medication::where('is_active', true)
+                                            ->orderBy('name_ar')
+                                            ->get()
+                                            ->mapWithKeys(function ($medication) {
+                                                $label = $medication->name_ar;
+                                                if ($medication->strength) {
+                                                    $label .= " ({$medication->strength})";
+                                                }
+                                                if ($medication->dosage_form) {
+                                                    $forms = [
+                                                        'tablet' => 'حبوب',
+                                                        'capsule' => 'كبسولات',
+                                                        'syrup' => 'شراب',
+                                                        'injection' => 'حقن',
+                                                        'cream' => 'كريم',
+                                                        'ointment' => 'مرهم',
+                                                        'drops' => 'قطرة',
+                                                        'spray' => 'رذاذ',
+                                                        'inhaler' => 'بخاخ',
+                                                        'suppository' => 'تحاميل',
+                                                        'patch' => 'لصقة',
+                                                        'other' => 'أخرى',
+                                                    ];
+                                                    $label .= ' - ' . ($forms[$medication->dosage_form] ?? $medication->dosage_form);
+                                                }
+                                                return [$medication->id => $label];
+                                            });
+                                    })
+                                    ->columnSpan(2),
+
+                                TextInput::make('dosage')
+                                    ->label('الجرعة')
+                                    ->placeholder('مثال: حبة واحدة، ملعقة صغيرة، 5ml')
+                                    ->columnSpan(1),
+
+                                TextInput::make('frequency')
+                                    ->label('عدد المرات')
+                                    ->placeholder('مثال: 3 مرات يومياً، كل 8 ساعات')
+                                    ->columnSpan(1),
+
+                                TextInput::make('duration')
+                                    ->label('المدة')
+                                    ->placeholder('مثال: 7 أيام، أسبوعين، شهر')
+                                    ->columnSpan(1),
+
+                                TextInput::make('instructions')
+                                    ->label('تعليمات الاستخدام')
+                                    ->placeholder('مثال: قبل الأكل، بعد الأكل، مع الماء')
+                                    ->columnSpan(1),
+
+                                Textarea::make('notes')
+                                    ->label('ملاحظات إضافية')
+                                    ->placeholder('أي ملاحظات خاصة بهذا الدواء...')
+                                    ->rows(2)
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(2)
+                            ->reorderable(false)
+                            ->itemLabel(fn (array $state): ?string =>
+                                \App\Models\Medication::find($state['medication_id'])?->name_ar ?? 'دواء جديد'
+                            )
+                            ->addActionLabel('إضافة دواء')
+                            ->defaultItems(0)
+                            ->columnSpanFull()
+                            ->afterStateHydrated(function ($component, $state, $record) {
+                                if ($record) {
+                                    $record->load('medications');
+
+                                    if ($record->medications->count() > 0) {
+                                        $data = $record->medications->map(function ($medication) {
+                                            return [
+                                                'medication_id' => $medication->id,
+                                                'dosage' => $medication->pivot->dosage,
+                                                'frequency' => $medication->pivot->frequency,
+                                                'duration' => $medication->pivot->duration,
+                                                'notes' => $medication->pivot->notes,
+                                            ];
+                                        })->toArray();
+
+                                        $component->state($data);
+                                    }
+                                }
+                            }),
+                    ])
+                    ->collapsible(),
+
+                // ==================== 5. الأشعة المطلوبة ====================
                 Section::make('الأشعة المطلوبة')
                     ->icon('heroicon-o-camera')
                     ->schema([
@@ -278,7 +377,7 @@ class TreatmentPlanTab
                     ])
                     ->collapsible(),
 
-                // ==================== 5. التنظير ====================
+                // ==================== 6. التنظير ====================
                 Section::make('التنظير المطلوب')
                     ->icon('heroicon-o-magnifying-glass-circle')
                     ->schema([
@@ -307,7 +406,7 @@ class TreatmentPlanTab
                     ->columns(4)
                     ->collapsible(),
 
-                // ==================== 6. الإحالة والاستشارات ====================
+                // ==================== 7. الإحالة والاستشارات ====================
                 Section::make('الإحالة والاستشارات')
                     ->icon('heroicon-o-users')
                     ->schema([

@@ -140,5 +140,33 @@ class CreateVisit extends CreateRecord
         } else {
             \Log::warning('CreateVisit - labTestsData is empty or not set');
         }
+
+        // ==================== حفظ الأدوية ====================
+        if (isset($data['medicationsData']) && !empty($data['medicationsData'])) {
+            \Log::info('CreateVisit - Starting medications sync');
+            $syncData = [];
+
+            foreach ($data['medicationsData'] as $medicationData) {
+                \Log::info('CreateVisit - Processing medication:', ['medicationData' => $medicationData]);
+                if (isset($medicationData['medication_id'])) {
+                    $syncData[$medicationData['medication_id']] = [
+                        'dosage' => $medicationData['dosage'] ?? null,
+                        'frequency' => $medicationData['frequency'] ?? null,
+                        'duration' => $medicationData['duration'] ?? null,
+                        'instructions' => $medicationData['instructions'] ?? null,
+                        'notes' => $medicationData['notes'] ?? null,
+                    ];
+                }
+            }
+            \Log::info('CreateVisit - Medications sync data prepared:', ['syncData' => $syncData]);
+            $visit->medications()->sync($syncData);
+            \Log::info('CreateVisit - Medications sync completed');
+
+            // التحقق من الحفظ
+            $savedCount = $visit->medications()->count();
+            \Log::info('CreateVisit - Medications saved count:', ['count' => $savedCount]);
+        } else {
+            \Log::warning('CreateVisit - medicationsData is empty or not set');
+        }
     }
 }
