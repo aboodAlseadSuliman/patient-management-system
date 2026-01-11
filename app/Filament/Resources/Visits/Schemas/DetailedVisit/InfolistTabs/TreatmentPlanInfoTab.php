@@ -173,7 +173,7 @@ class TreatmentPlanInfoTab
                                     $items = [];
                                     foreach ($labTests as $index => $labTest) {
                                         $number = $index + 1;
-                                        $text = "**{$number}. {$labTest->name_ar}**";
+                                        $text = "{$number}\\. **{$labTest->name_ar}**";
 
                                         if ($labTest->abbreviation) {
                                             $text .= " ({$labTest->abbreviation})";
@@ -186,7 +186,7 @@ class TreatmentPlanInfoTab
                                         $items[] = $text;
                                     }
 
-                                    $result = implode("\n", $items);
+                                    $result = implode("\n\n", $items);
 
                                     // إضافة الملاحظات العامة
                                     if ($record->treatmentPlan?->lab_tests_simple_notes) {
