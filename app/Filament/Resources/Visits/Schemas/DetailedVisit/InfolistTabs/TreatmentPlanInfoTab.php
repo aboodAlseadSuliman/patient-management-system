@@ -173,7 +173,9 @@ class TreatmentPlanInfoTab
                                     $items = [];
                                     foreach ($labTests as $index => $labTest) {
                                         $number = $index + 1;
-                                        $text = "{$number}\\. **{$labTest->name_ar}**";
+
+                                        // بناء النص بدون الرقم أولاً
+                                        $text = "**{$labTest->name_ar}**";
 
                                         if ($labTest->abbreviation) {
                                             $text .= " ({$labTest->abbreviation})";
@@ -183,7 +185,8 @@ class TreatmentPlanInfoTab
                                             $text .= " - {$labTest->name_en}";
                                         }
 
-                                        $items[] = $text;
+                                        // إضافة الرقم في النهاية
+                                        $items[] = "{$number}. {$text}";
                                     }
 
                                     $result = implode("\n\n", $items);
