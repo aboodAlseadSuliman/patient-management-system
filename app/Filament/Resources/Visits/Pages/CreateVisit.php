@@ -89,11 +89,11 @@ class CreateVisit extends CreateRecord
                 if (isset($attachmentData['file_path']) && $attachmentData['file_path']) {
                     // استخراج معلومات الملف
                     $filePath = $attachmentData['file_path'];
-                    $fullPath = public_path($filePath);
+                    $fullPath = public_path('medical-attachments/' . $filePath);
 
                     $visit->attachmentFiles()->create([
                         'attachment_type' => $attachmentData['attachment_type'],
-                        'file_path' => $filePath,
+                        'file_path' => 'medical-attachments/' . $filePath,
                         'original_filename' => basename($filePath),
                         'mime_type' => file_exists($fullPath) ? mime_content_type($fullPath) : null,
                         'file_size' => file_exists($fullPath) ? filesize($fullPath) : null,

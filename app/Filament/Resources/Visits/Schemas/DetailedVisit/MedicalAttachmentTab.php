@@ -54,16 +54,16 @@ class MedicalAttachmentTab
                                     ->directory(function ($get, $record) {
                                         // استخدام السجل الحالي (للتعديل) أو حساب من patient_id
                                         if ($record && $record->patient_id) {
-                                            return 'medical-attachments/' . $record->patient_id . '/' . $record->id;
+                                            return $record->patient_id . '/' . $record->id;
                                         }
                                         // للزيارات الجديدة، نضع في temp ثم ننقلها بعد الحفظ
                                         $patientId = $get('../../patient_id');
                                         if ($patientId) {
-                                            return 'medical-attachments/' . $patientId . '/temp';
+                                            return $patientId . '/temp';
                                         }
-                                        return 'medical-attachments/temp';
+                                        return 'temp';
                                     })
-                                    ->disk('public')
+                                    ->disk('medical_attachments')
                                     ->preserveFilenames()
                                     ->acceptedFileTypes([
                                         'image/jpeg',

@@ -185,7 +185,14 @@ class EditVisit extends EditRecord
             foreach ($data['attachment_files_data'] as $attachmentData) {
                 if (isset($attachmentData['file_path']) && $attachmentData['file_path']) {
                     $filePath = $attachmentData['file_path'];
-                    $fullPath = public_path($filePath);
+                    // إذا كان المسار يبدأ بـ medical-attachments/ فلا نضيفه مرة أخرى
+                    $fullPath = str_starts_with($filePath, 'medical-attachments/')
+                        ? public_path($filePath)
+                        : public_path('medical-attachments/' . $filePath);
+
+                    $storedPath = str_starts_with($filePath, 'medical-attachments/')
+                        ? $filePath
+                        : 'medical-attachments/' . $filePath;
 
                     if (isset($attachmentData['id']) && $attachmentData['id']) {
                         // تحديث مرفق موجود
@@ -197,7 +204,7 @@ class EditVisit extends EditRecord
                         // إنشاء مرفق جديد
                         $visit->attachmentFiles()->create([
                             'attachment_type' => $attachmentData['attachment_type'],
-                            'file_path' => $filePath,
+                            'file_path' => $storedPath,
                             'original_filename' => basename($filePath),
                             'mime_type' => file_exists($fullPath) ? mime_content_type($fullPath) : null,
                             'file_size' => file_exists($fullPath) ? filesize($fullPath) : null,
