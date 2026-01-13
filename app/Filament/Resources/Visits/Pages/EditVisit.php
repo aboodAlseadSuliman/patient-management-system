@@ -188,14 +188,8 @@ class EditVisit extends EditRecord
             foreach ($data['attachment_files_data'] as $attachmentData) {
                 if (isset($attachmentData['file_path']) && $attachmentData['file_path']) {
                     $filePath = $attachmentData['file_path'];
-                    // إذا كان المسار يبدأ بـ medical-attachments/ فلا نضيفه مرة أخرى
-                    $fullPath = str_starts_with($filePath, 'medical-attachments/')
-                        ? public_path($filePath)
-                        : public_path('medical-attachments/' . $filePath);
-
-                    $storedPath = str_starts_with($filePath, 'medical-attachments/')
-                        ? $filePath
-                        : 'medical-attachments/' . $filePath;
+                    // الحصول على المسار الكامل للتحقق من الملف
+                    $fullPath = public_path('medical-attachments/' . $filePath);
 
                     if (isset($attachmentData['id']) && $attachmentData['id']) {
                         // تحديث مرفق موجود
@@ -203,16 +197,17 @@ class EditVisit extends EditRecord
 
                         if ($existingAttachment) {
                             // التحقق إذا تم تغيير الملف
-                            if ($existingAttachment->file_path !== $storedPath) {
+                            if ($existingAttachment->file_path !== $filePath) {
                                 // حذف الملف القديم
-                                if (file_exists(public_path($existingAttachment->file_path))) {
-                                    unlink(public_path($existingAttachment->file_path));
+                                $oldFullPath = public_path('medical-attachments/' . $existingAttachment->file_path);
+                                if (file_exists($oldFullPath)) {
+                                    unlink($oldFullPath);
                                 }
 
                                 // تحديث بمعلومات الملف الجديد
                                 $existingAttachment->update([
                                     'attachment_type' => $attachmentData['attachment_type'],
-                                    'file_path' => $storedPath,
+                                    'file_path' => $filePath, // حفظ المسار النسبي فقط
                                     'original_filename' => basename($filePath),
                                     'mime_type' => file_exists($fullPath) ? mime_content_type($fullPath) : null,
                                     'file_size' => file_exists($fullPath) ? filesize($fullPath) : null,
@@ -230,7 +225,7 @@ class EditVisit extends EditRecord
                         // إنشاء مرفق جديد
                         $visit->attachmentFiles()->create([
                             'attachment_type' => $attachmentData['attachment_type'],
-                            'file_path' => $storedPath,
+                            'file_path' => $filePath, // حفظ المسار النسبي فقط
                             'original_filename' => basename($filePath),
                             'mime_type' => file_exists($fullPath) ? mime_content_type($fullPath) : null,
                             'file_size' => file_exists($fullPath) ? filesize($fullPath) : null,

@@ -45,7 +45,7 @@ class VisitAttachmentFile extends Model
      */
     public function getFileUrlAttribute(): string
     {
-        return asset($this->file_path);
+        return asset('medical-attachments/' . $this->file_path);
     }
 
     /**
@@ -95,8 +95,9 @@ class VisitAttachmentFile extends Model
         parent::boot();
 
         static::deleting(function ($attachment) {
-            if (file_exists(public_path($attachment->file_path))) {
-                unlink(public_path($attachment->file_path));
+            $fullPath = public_path('medical-attachments/' . $attachment->file_path);
+            if (file_exists($fullPath)) {
+                unlink($fullPath);
             }
         });
     }

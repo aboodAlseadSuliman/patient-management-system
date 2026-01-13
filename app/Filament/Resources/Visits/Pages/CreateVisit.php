@@ -93,7 +93,7 @@ class CreateVisit extends CreateRecord
 
                     $visit->attachmentFiles()->create([
                         'attachment_type' => $attachmentData['attachment_type'],
-                        'file_path' => 'medical-attachments/' . $filePath,
+                        'file_path' => $filePath, // حفظ المسار النسبي فقط (disk يضيف البادئة تلقائياً)
                         'original_filename' => basename($filePath),
                         'mime_type' => file_exists($fullPath) ? mime_content_type($fullPath) : null,
                         'file_size' => file_exists($fullPath) ? filesize($fullPath) : null,
