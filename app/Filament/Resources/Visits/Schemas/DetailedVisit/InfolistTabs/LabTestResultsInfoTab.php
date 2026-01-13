@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\Visits\Schemas\DetailedVisit\InfolistTabs;
 
-use Filament\Infolists\Components\Grid;
-use Filament\Infolists\Components\RepeatableEntry;
-use Filament\Infolists\Components\Section;
-use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\RepeatableEntry;
 
 class LabTestResultsInfoTab
 {
@@ -25,7 +25,7 @@ class LabTestResultsInfoTab
                             ->label('')
                             ->schema([
                                 Grid::make(5)->schema([
-                                    TextEntry::make('labTest.name')
+                                    TextEntry::make('labTest.name_ar')
                                         ->label('اسم التحليل')
                                         ->weight('bold')
                                         ->size('lg')
@@ -49,7 +49,7 @@ class LabTestResultsInfoTab
                                         ->label('الحالة')
                                         ->badge()
                                         ->color(fn($record) => $record->status_color)
-                                        ->icon(fn($record) => match($record->status_color) {
+                                        ->icon(fn($record) => match ($record->status_color) {
                                             'success' => 'heroicon-m-check-circle',
                                             'danger' => 'heroicon-m-exclamation-circle',
                                             default => 'heroicon-m-question-mark-circle',

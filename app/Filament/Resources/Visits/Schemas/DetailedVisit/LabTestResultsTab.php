@@ -32,7 +32,7 @@ class LabTestResultsTab
                                 Select::make('lab_test_id')
                                     ->label('اسم التحليل')
                                     ->required()
-                                    ->options(LabTest::query()->pluck('name', 'id'))
+                                    ->options(LabTest::query()->pluck('name_ar', 'id'))
                                     ->searchable()
                                     ->native(false)
                                     ->live()
@@ -55,10 +55,17 @@ class LabTestResultsTab
                                         }
                                     })
                                     ->createOptionForm([
-                                        TextInput::make('name')
-                                            ->label('اسم التحليل')
+                                        TextInput::make('name_ar')
+                                            ->label('اسم التحليل بالعربية')
                                             ->required()
                                             ->maxLength(255),
+                                        TextInput::make('name_en')
+                                            ->label('اسم التحليل بالإنجليزية')
+                                            ->maxLength(255),
+                                        TextInput::make('abbreviation')
+                                            ->label('الاختصار')
+                                            ->placeholder('FBS, CBC, etc.')
+                                            ->maxLength(50),
                                         Textarea::make('description')
                                             ->label('وصف التحليل')
                                             ->rows(2),
@@ -134,7 +141,7 @@ class LabTestResultsTab
                                 $unit = $state['unit'] ?? '';
                                 $status = isset($state['is_normal']) ? ($state['is_normal'] ? '✅' : '⚠️') : '';
 
-                                return $labTest?->name . ' ' . $status . ($result ? " - {$result} {$unit}" : '');
+                                return $labTest?->name_ar . ' ' . $status . ($result ? " - {$result} {$unit}" : '');
                             })
                             ->reorderable(false)
                             ->columnSpanFull(),
