@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Visits\Schemas\DetailedVisit\InfolistTabs;
 
 use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -14,9 +15,70 @@ class MedicalAttachmentInfoTab
     {
         return Tab::make('المرفقات الطبية')
             ->icon('heroicon-o-document-text')
-            ->badge(fn ($record) => $record->medicalAttachment ? '✓' : null)
+            ->badge(fn ($record) => $record->attachmentFiles->count() > 0 ? $record->attachmentFiles->count() : null)
             ->badgeColor('success')
             ->schema([
+
+                // ==================== الملفات المرفوعة ====================
+                Section::make('الملفات المرفوعة')
+                    ->icon('heroicon-o-arrow-up-tray')
+                    ->description('صور الأشعة والتقارير الطبية المرفوعة')
+                    ->schema([
+                        RepeatableEntry::make('attachmentFiles')
+                            ->label('')
+                            ->schema([
+                                Grid::make(3)
+                                    ->schema([
+                                        TextEntry::make('attachment_type')
+                                            ->label('نوع المرفق')
+                                            ->formatStateUsing(fn ($state) => match($state) {
+                                                'x-ray' => '📷 أشعة بسيطة (X-Ray)',
+                                                'ultrasound' => '🔊 إيكو بطني (Ultrasound)',
+                                                'ct-scan' => '💿 طبقي محوري (CT Scan)',
+                                                'mri' => '🧲 رنين مغناطيسي (MRI)',
+                                                'endoscopy' => '🔬 تنظير',
+                                                'lab-report' => '📋 تقرير تحاليل',
+                                                'document' => '📄 مستند طبي',
+                                                'other' => '📎 أخرى',
+                                                default => $state,
+                                            })
+                                            ->badge()
+                                            ->color('info')
+                                            ->columnSpan(1),
+
+                                        TextEntry::make('file_path')
+                                            ->label('الملف')
+                                            ->formatStateUsing(fn ($state, $record) =>
+                                                '<a href="' . asset($state) . '" target="_blank" class="text-primary-600 hover:underline flex items-center gap-2">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13l-3 3m0 0l-3-3m3 3V8m0 13a9 9 0 110-18 9 9 0 010 18z" />
+                                                    </svg>
+                                                    تحميل - ' . $record->original_filename . ' (' . $record->formatted_file_size . ')
+                                                </a>'
+                                            )
+                                            ->html()
+                                            ->columnSpan(1),
+
+                                        TextEntry::make('created_at')
+                                            ->label('تاريخ الرفع')
+                                            ->dateTime('d/m/Y H:i')
+                                            ->badge()
+                                            ->color('gray')
+                                            ->columnSpan(1),
+                                    ]),
+
+                                TextEntry::make('notes')
+                                    ->label('📝 الملاحظات')
+                                    ->markdown()
+                                    ->placeholder('لا توجد ملاحظات')
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(1)
+                            ->contained(false),
+                    ])
+                    ->collapsed(false)
+                    ->visible(fn ($record) => $record->attachmentFiles->count() > 0)
+                    ->collapsible(),
 
                 // ==================== 1. الإحالة الطبية ====================
                 Section::make('الإحالة الطبية')

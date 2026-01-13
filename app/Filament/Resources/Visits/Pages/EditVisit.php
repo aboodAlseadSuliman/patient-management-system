@@ -83,10 +83,13 @@ class EditVisit extends EditRecord
         // تحميل بيانات ملفات المرفقات الطبية المرفوعة
         if ($visit->attachmentFiles->isNotEmpty()) {
             $data['attachment_files_data'] = $visit->attachmentFiles->map(function ($file) {
+                // إزالة البادئة medical-attachments/ لأن الـ disk يضيفها تلقائياً
+                $filePath = str_replace('medical-attachments/', '', $file->file_path);
+
                 return [
                     'id' => $file->id,
                     'attachment_type' => $file->attachment_type,
-                    'file_path' => $file->file_path,
+                    'file_path' => $filePath,
                     'notes' => $file->notes,
                 ];
             })->toArray();
