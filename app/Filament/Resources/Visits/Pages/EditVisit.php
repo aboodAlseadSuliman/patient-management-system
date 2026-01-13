@@ -33,13 +33,13 @@ class EditVisit extends EditRecord
             'referringDoctor',
             'complaintSymptom',
             'timeline',
-            'medicalAttachment',
             'clinicalExamination',
             'treatmentPlan',
             'followup',
             'labTests',
             'preliminaryDiagnoses',
             'attachmentFiles',
+            'labTestResults.labTest',
         ]);
     }
 
@@ -58,11 +58,6 @@ class EditVisit extends EditRecord
         // تحميل بيانات الخط الزمني
         if ($visit->timeline) {
             $data['timeline'] = $visit->timeline->toArray();
-        }
-
-        // تحميل بيانات المرفقات الطبية
-        if ($visit->medicalAttachment) {
-            $data['medicalAttachment'] = $visit->medicalAttachment->toArray();
         }
 
         // تحميل بيانات الفحص السريري
@@ -91,6 +86,24 @@ class EditVisit extends EditRecord
                     'attachment_type' => $file->attachment_type,
                     'file_path' => $filePath,
                     'notes' => $file->notes,
+                ];
+            })->toArray();
+        }
+
+        // تحميل بيانات نتائج التحاليل
+        if ($visit->labTestResults->isNotEmpty()) {
+            $data['lab_test_results_data'] = $visit->labTestResults->map(function ($result) {
+                return [
+                    'id' => $result->id,
+                    'lab_test_id' => $result->lab_test_id,
+                    'test_date' => $result->test_date,
+                    'result_value' => $result->result_value,
+                    'reference_range' => $result->reference_range,
+                    'unit' => $result->unit,
+                    'is_normal' => $result->is_normal,
+                    'previous_value' => $result->previous_value,
+                    'previous_test_date' => $result->previous_test_date,
+                    'notes' => $result->notes,
                 ];
             })->toArray();
         }
@@ -157,14 +170,6 @@ class EditVisit extends EditRecord
             $visit->timeline()->updateOrCreate(
                 ['visit_id' => $visit->id],
                 $data['timeline']
-            );
-        }
-
-        // تحديث أو إنشاء المرفقات الطبية
-        if (isset($data['medicalAttachment'])) {
-            $visit->medicalAttachment()->updateOrCreate(
-                ['visit_id' => $visit->id],
-                $data['medicalAttachment']
             );
         }
 
@@ -366,6 +371,59 @@ class EditVisit extends EditRecord
             \Log::info('EditVisit - Imaging studies saved count:', ['count' => $savedCount]);
         } else {
             \Log::warning('EditVisit - imagingStudiesData is empty or not set');
+        }
+
+        // ==================== حفظ/تحديث نتائج التحاليل (النظام الجديد) ====================
+        if (isset($data['lab_test_results_data'])) {
+            // الحصول على معرفات النتائج الموجودة في النموذج
+            $existingIds = collect($data['lab_test_results_data'])
+                ->pluck('id')
+                ->filter()
+                ->toArray();
+
+            // حذف النتائج التي تم إزالتها من النموذج
+            $visit->labTestResults()
+                ->whereNotIn('id', $existingIds)
+                ->get()
+                ->each(function ($result) {
+                    $result->delete();
+                });
+
+            // إضافة أو تحديث النتائج
+            foreach ($data['lab_test_results_data'] as $resultData) {
+                if (isset($resultData['lab_test_id']) && isset($resultData['result_value'])) {
+                    if (isset($resultData['id']) && $resultData['id']) {
+                        // تحديث نتيجة موجودة
+                        $existingResult = $visit->labTestResults()->find($resultData['id']);
+                        if ($existingResult) {
+                            $existingResult->update([
+                                'lab_test_id' => $resultData['lab_test_id'],
+                                'test_date' => $resultData['test_date'] ?? now(),
+                                'result_value' => $resultData['result_value'],
+                                'reference_range' => $resultData['reference_range'] ?? null,
+                                'unit' => $resultData['unit'] ?? null,
+                                'is_normal' => $resultData['is_normal'] ?? null,
+                                'previous_value' => $resultData['previous_value'] ?? null,
+                                'previous_test_date' => $resultData['previous_test_date'] ?? null,
+                                'notes' => $resultData['notes'] ?? null,
+                            ]);
+                        }
+                    } else {
+                        // إنشاء نتيجة جديدة
+                        $visit->labTestResults()->create([
+                            'lab_test_id' => $resultData['lab_test_id'],
+                            'test_date' => $resultData['test_date'] ?? now(),
+                            'result_value' => $resultData['result_value'],
+                            'reference_range' => $resultData['reference_range'] ?? null,
+                            'unit' => $resultData['unit'] ?? null,
+                            'is_normal' => $resultData['is_normal'] ?? null,
+                            'previous_value' => $resultData['previous_value'] ?? null,
+                            'previous_test_date' => $resultData['previous_test_date'] ?? null,
+                            'notes' => $resultData['notes'] ?? null,
+                        ]);
+                    }
+                }
+            }
         }
     }
 }

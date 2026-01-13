@@ -216,6 +216,14 @@ class Visit extends Model
             ->withTimestamps();
     }
 
+    /**
+     * العلاقة مع نتائج التحاليل (النظام الجديد)
+     */
+    public function labTestResults()
+    {
+        return $this->hasMany(LabTestResult::class);
+    }
+
     public function imagingStudies()
     {
         return $this->belongsToMany(ImagingStudy::class, 'visit_imaging_studies')

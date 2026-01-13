@@ -11,6 +11,7 @@ use App\Filament\Resources\Visits\Schemas\DetailedVisit\TimelineTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\MedicalAttachmentTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\ClinicalExaminationTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\TreatmentPlanTab;
+use App\Filament\Resources\Visits\Schemas\DetailedVisit\LabTestResultsTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\FollowupTab;
 
 class VisitForm
@@ -29,6 +30,7 @@ class VisitForm
                         MedicalAttachmentTab::make(),
                         ClinicalExaminationTab::make(),
                         TreatmentPlanTab::make(),
+                        LabTestResultsTab::make(),
                         FollowupTab::make(),
                     ])
                     ->persistTabInQueryString('tab')

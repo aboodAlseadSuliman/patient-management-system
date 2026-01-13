@@ -78,11 +78,6 @@ class CreateVisit extends CreateRecord
             $visit->timeline()->create($data['timeline']);
         }
 
-        // حفظ المرفقات الطبية
-        if (isset($data['medicalAttachment']) && !empty(array_filter($data['medicalAttachment']))) {
-            $visit->medicalAttachment()->create($data['medicalAttachment']);
-        }
-
         // حفظ ملفات المرفقات الطبية المرفوعة
         if (isset($data['attachment_files_data']) && !empty($data['attachment_files_data'])) {
             foreach ($data['attachment_files_data'] as $attachmentData) {
@@ -230,6 +225,25 @@ class CreateVisit extends CreateRecord
             \Log::info('CreateVisit - Imaging studies saved count:', ['count' => $savedCount]);
         } else {
             \Log::warning('CreateVisit - imagingStudiesData is empty or not set');
+        }
+
+        // ==================== حفظ نتائج التحاليل (النظام الجديد) ====================
+        if (isset($data['lab_test_results_data']) && !empty($data['lab_test_results_data'])) {
+            foreach ($data['lab_test_results_data'] as $resultData) {
+                if (isset($resultData['lab_test_id']) && isset($resultData['result_value'])) {
+                    $visit->labTestResults()->create([
+                        'lab_test_id' => $resultData['lab_test_id'],
+                        'test_date' => $resultData['test_date'] ?? now(),
+                        'result_value' => $resultData['result_value'],
+                        'reference_range' => $resultData['reference_range'] ?? null,
+                        'unit' => $resultData['unit'] ?? null,
+                        'is_normal' => $resultData['is_normal'] ?? null,
+                        'previous_value' => $resultData['previous_value'] ?? null,
+                        'previous_test_date' => $resultData['previous_test_date'] ?? null,
+                        'notes' => $resultData['notes'] ?? null,
+                    ]);
+                }
+            }
         }
     }
 }
