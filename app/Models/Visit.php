@@ -253,4 +253,9 @@ class Visit extends Model
     {
         return $this->hasOne(VisitFollowup::class);
     }
+
+    public function attachmentFiles()
+    {
+        return $this->hasMany(VisitAttachmentFile::class);
+    }
 }

@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Visits\Schemas\DetailedVisit;
 
 use App\Models\ReferringDoctor;
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -20,6 +22,90 @@ class MedicalAttachmentTab
             ->badge(fn ($get) => $get('medicalAttachment.medical_referral') ? '✓' : null)
             ->badgeColor('success')
             ->schema([
+
+                // ==================== رفع المرفقات الطبية ====================
+                Section::make('رفع المرفقات الطبية')
+                    ->icon('heroicon-o-arrow-up-tray')
+                    ->description('رفع صور الأشعة والتقارير الطبية')
+                    ->schema([
+                        Repeater::make('attachment_files_data')
+                            ->label('المرفقات')
+                            ->schema([
+                                Select::make('attachment_type')
+                                    ->label('نوع المرفق')
+                                    ->required()
+                                    ->options([
+                                        'x-ray' => 'أشعة بسيطة (X-Ray)',
+                                        'ultrasound' => 'إيكو بطني (Ultrasound)',
+                                        'ct-scan' => 'طبقي محوري (CT Scan)',
+                                        'mri' => 'رنين مغناطيسي (MRI)',
+                                        'endoscopy' => 'تنظير',
+                                        'lab-report' => 'تقرير تحاليل',
+                                        'document' => 'مستند طبي',
+                                        'other' => 'أخرى',
+                                    ])
+                                    ->searchable()
+                                    ->native(false)
+                                    ->columnSpan(1),
+
+                                FileUpload::make('file_path')
+                                    ->label('الملف')
+                                    ->required()
+                                    ->directory(function ($get, $record) {
+                                        // استخدام السجل الحالي (للتعديل) أو حساب من patient_id
+                                        if ($record && $record->patient_id) {
+                                            return 'medical-attachments/' . $record->patient_id . '/' . $record->id;
+                                        }
+                                        // للزيارات الجديدة، نضع في temp ثم ننقلها بعد الحفظ
+                                        $patientId = $get('../../patient_id');
+                                        if ($patientId) {
+                                            return 'medical-attachments/' . $patientId . '/temp';
+                                        }
+                                        return 'medical-attachments/temp';
+                                    })
+                                    ->disk('public')
+                                    ->preserveFilenames()
+                                    ->acceptedFileTypes([
+                                        'image/jpeg',
+                                        'image/png',
+                                        'image/jpg',
+                                        'application/pdf',
+                                        'application/dicom',
+                                    ])
+                                    ->maxSize(10240) // 10MB
+                                    ->downloadable()
+                                    ->openable()
+                                    ->columnSpan(1),
+
+                                Textarea::make('notes')
+                                    ->label('ملاحظات')
+                                    ->rows(2)
+                                    ->placeholder('أي ملاحظات أو تفاصيل عن المرفق...')
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(2)
+                            ->defaultItems(0)
+                            ->addActionLabel('+ إضافة مرفق طبي')
+                            ->collapsible()
+                            ->itemLabel(fn (array $state): ?string =>
+                                isset($state['attachment_type'])
+                                    ? match($state['attachment_type']) {
+                                        'x-ray' => 'أشعة بسيطة (X-Ray)',
+                                        'ultrasound' => 'إيكو بطني (Ultrasound)',
+                                        'ct-scan' => 'طبقي محوري (CT Scan)',
+                                        'mri' => 'رنين مغناطيسي (MRI)',
+                                        'endoscopy' => 'تنظير',
+                                        'lab-report' => 'تقرير تحاليل',
+                                        'document' => 'مستند طبي',
+                                        'other' => 'أخرى',
+                                        default => 'مرفق طبي'
+                                    }
+                                    : 'مرفق طبي'
+                            )
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->collapsed(false),
 
                 // ==================== 1. الأشعة ====================
                 Section::make('الأشعة والتصوير الطبي')

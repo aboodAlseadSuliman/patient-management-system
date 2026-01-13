@@ -83,6 +83,27 @@ class CreateVisit extends CreateRecord
             $visit->medicalAttachment()->create($data['medicalAttachment']);
         }
 
+        // حفظ ملفات المرفقات الطبية المرفوعة
+        if (isset($data['attachment_files_data']) && !empty($data['attachment_files_data'])) {
+            foreach ($data['attachment_files_data'] as $attachmentData) {
+                if (isset($attachmentData['file_path']) && $attachmentData['file_path']) {
+                    // استخراج معلومات الملف
+                    $filePath = $attachmentData['file_path'];
+                    $fullPath = public_path($filePath);
+
+                    $visit->attachmentFiles()->create([
+                        'attachment_type' => $attachmentData['attachment_type'],
+                        'file_path' => $filePath,
+                        'original_filename' => basename($filePath),
+                        'mime_type' => file_exists($fullPath) ? mime_content_type($fullPath) : null,
+                        'file_size' => file_exists($fullPath) ? filesize($fullPath) : null,
+                        'notes' => $attachmentData['notes'] ?? null,
+                        'uploaded_by' => auth()->id(),
+                    ]);
+                }
+            }
+        }
+
         // حفظ الفحص السريري
         if (isset($data['clinicalExamination']) && !empty(array_filter($data['clinicalExamination']))) {
             $visit->clinicalExamination()->create($data['clinicalExamination']);

@@ -39,6 +39,7 @@ class EditVisit extends EditRecord
             'followup',
             'labTests',
             'preliminaryDiagnoses',
+            'attachmentFiles',
         ]);
     }
 
@@ -77,6 +78,18 @@ class EditVisit extends EditRecord
         // تحميل بيانات المتابعة
         if ($visit->followup) {
             $data['followup'] = $visit->followup->toArray();
+        }
+
+        // تحميل بيانات ملفات المرفقات الطبية المرفوعة
+        if ($visit->attachmentFiles->isNotEmpty()) {
+            $data['attachment_files_data'] = $visit->attachmentFiles->map(function ($file) {
+                return [
+                    'id' => $file->id,
+                    'attachment_type' => $file->attachment_type,
+                    'file_path' => $file->file_path,
+                    'notes' => $file->notes,
+                ];
+            })->toArray();
         }
 
         return $data;
@@ -150,6 +163,50 @@ class EditVisit extends EditRecord
                 ['visit_id' => $visit->id],
                 $data['medicalAttachment']
             );
+        }
+
+        // حفظ/تحديث ملفات المرفقات الطبية المرفوعة
+        if (isset($data['attachment_files_data'])) {
+            // الحصول على معرفات المرفقات الموجودة في النموذج
+            $existingIds = collect($data['attachment_files_data'])
+                ->pluck('id')
+                ->filter()
+                ->toArray();
+
+            // حذف المرفقات التي تم إزالتها من النموذج
+            $visit->attachmentFiles()
+                ->whereNotIn('id', $existingIds)
+                ->get()
+                ->each(function ($attachment) {
+                    $attachment->delete(); // سيتم حذف الملف تلقائياً من boot method
+                });
+
+            // إضافة أو تحديث المرفقات
+            foreach ($data['attachment_files_data'] as $attachmentData) {
+                if (isset($attachmentData['file_path']) && $attachmentData['file_path']) {
+                    $filePath = $attachmentData['file_path'];
+                    $fullPath = public_path($filePath);
+
+                    if (isset($attachmentData['id']) && $attachmentData['id']) {
+                        // تحديث مرفق موجود
+                        $visit->attachmentFiles()->where('id', $attachmentData['id'])->update([
+                            'attachment_type' => $attachmentData['attachment_type'],
+                            'notes' => $attachmentData['notes'] ?? null,
+                        ]);
+                    } else {
+                        // إنشاء مرفق جديد
+                        $visit->attachmentFiles()->create([
+                            'attachment_type' => $attachmentData['attachment_type'],
+                            'file_path' => $filePath,
+                            'original_filename' => basename($filePath),
+                            'mime_type' => file_exists($fullPath) ? mime_content_type($fullPath) : null,
+                            'file_size' => file_exists($fullPath) ? filesize($fullPath) : null,
+                            'notes' => $attachmentData['notes'] ?? null,
+                            'uploaded_by' => auth()->id(),
+                        ]);
+                    }
+                }
+            }
         }
 
         // تحديث أو إنشاء الفحص السريري
