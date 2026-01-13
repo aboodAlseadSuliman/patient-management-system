@@ -38,20 +38,46 @@ class LabTestResultsTab
                                     ->live()
                                     ->afterStateUpdated(function ($state, $set, $get, $record) {
                                         // جلب آخر نتيجة لهذا التحليل من الزيارات السابقة
-                                        if ($state && $record) {
-                                            $patientId = $record->patient_id;
-                                            $previousResult = LabTestResult::whereHas('visit', function ($query) use ($patientId, $record) {
-                                                $query->where('patient_id', $patientId)
-                                                    ->where('id', '!=', $record->id);
-                                            })
-                                                ->where('lab_test_id', $state)
-                                                ->latest('test_date')
-                                                ->first();
+                                        if (!$state) {
+                                            return;
+                                        }
 
-                                            if ($previousResult) {
-                                                $set('previous_value', $previousResult->result_value);
-                                                $set('previous_test_date', $previousResult->test_date);
-                                            }
+                                        // محاولة الحصول على patient_id
+                                        $patientId = null;
+
+                                        // إذا كان في وضع التعديل
+                                        if ($record && $record->patient_id) {
+                                            $patientId = $record->patient_id;
+                                        }
+
+                                        // إذا كان في وضع الإنشاء، نحصل على patient_id من الفورم
+                                        if (!$patientId) {
+                                            $patientId = $get('../../patient_id');
+                                        }
+
+                                        if (!$patientId) {
+                                            return;
+                                        }
+
+                                        // جلب آخر نتيجة من زيارات المريض
+                                        $query = LabTestResult::whereHas('visit', function ($query) use ($patientId) {
+                                            $query->where('patient_id', $patientId);
+                                        })
+                                        ->where('lab_test_id', $state)
+                                        ->latest('test_date');
+
+                                        // استثناء الزيارة الحالية في حالة التعديل
+                                        if ($record) {
+                                            $query->whereHas('visit', function ($query) use ($record) {
+                                                $query->where('id', '!=', $record->id);
+                                            });
+                                        }
+
+                                        $previousResult = $query->first();
+
+                                        if ($previousResult) {
+                                            $set('previous_value', $previousResult->result_value);
+                                            $set('previous_test_date', $previousResult->test_date);
                                         }
                                     })
                                     ->createOptionForm([
