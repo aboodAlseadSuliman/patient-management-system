@@ -26,30 +26,42 @@ class CreateVisit extends CreateRecord
         }
 
         // ⭐ مزامنة الأمراض المزمنة مع ملف المريض
-        if (isset($data['chronic_diseases_sync']) && !empty($data['chronic_diseases_sync'])) {
+        if (isset($data['chronic_diseases_data']) && !empty($data['chronic_diseases_data'])) {
             $visit->patient->chronicDiseases()->syncWithoutDetaching(
-                collect($data['chronic_diseases_sync'])->mapWithKeys(function ($diseaseId) use ($visit) {
-                    return [$diseaseId => [
-                        'diagnosis_date' => $visit->visit_date,
-                        'is_active' => true,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]];
-                })->toArray()
+                collect($data['chronic_diseases_data'])->mapWithKeys(function ($diseaseData) use ($visit) {
+                    if (isset($diseaseData['chronic_disease_id'])) {
+                        return [$diseaseData['chronic_disease_id'] => [
+                            'diagnosis_date' => $diseaseData['diagnosis_date'] ?? $visit->visit_date,
+                            'notes' => $diseaseData['notes'] ?? null,
+                            'is_active' => true,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]];
+                    }
+                    return [];
+                })->filter()->toArray()
             );
         }
 
         // ⭐ مزامنة الأدوية الدائمة مع ملف المريض
-        if (isset($data['permanent_medications_sync']) && !empty($data['permanent_medications_sync'])) {
+        if (isset($data['permanent_medications_data']) && !empty($data['permanent_medications_data'])) {
             $visit->patient->permanentMedications()->syncWithoutDetaching(
-                collect($data['permanent_medications_sync'])->mapWithKeys(function ($medicationId) {
-                    return [$medicationId => [
-                        'is_active' => true,
-                        'start_date' => now(),
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]];
-                })->toArray()
+                collect($data['permanent_medications_data'])->mapWithKeys(function ($medicationData) {
+                    if (isset($medicationData['medication_id'])) {
+                        return [$medicationData['medication_id'] => [
+                            'dosage' => $medicationData['dosage'] ?? null,
+                            'frequency' => $medicationData['frequency'] ?? null,
+                            'route' => $medicationData['route'] ?? 'oral',
+                            'start_date' => $medicationData['start_date'] ?? now(),
+                            'end_date' => $medicationData['end_date'] ?? null,
+                            'notes' => $medicationData['notes'] ?? null,
+                            'is_active' => true,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]];
+                    }
+                    return [];
+                })->filter()->toArray()
             );
         }
 
@@ -57,6 +69,9 @@ class CreateVisit extends CreateRecord
         if (isset($data['complaintSymptom']) && !empty(array_filter($data['complaintSymptom']))) {
             $visit->complaintSymptom()->create($data['complaintSymptom']);
         }
+
+        // حفظ الشكاية المنظمة (النظام الجديد) - يتم حفظها في حقل JSON في جدول visits مباشرة
+        // لا حاجة لحفظها هنا، Laravel يحفظها تلقائياً من خلال $fillable و $casts
 
         // حفظ الخط الزمني
         if (isset($data['timeline']) && !empty(array_filter($data['timeline']))) {

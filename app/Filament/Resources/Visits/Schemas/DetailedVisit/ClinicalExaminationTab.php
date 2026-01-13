@@ -62,42 +62,36 @@ class ClinicalExaminationTab
                             ->numeric()
                             ->step(0.1)
                             ->suffix('كغ')
-                            ->placeholder('70.5')
-                            ->columnSpan(2),
+                            ->placeholder('70.5'),
 
                         Textarea::make('clinicalExamination.head_neck_exam')
                             ->label('2. الرأس والعنق')
                             ->rows(3)
-                            ->placeholder('عيون، أذنين، أنف، فم، بلعوم، غدد لمفاوية، درقية...')
-                            ->columnSpan(2),
+                            ->placeholder('عيون، أذنين، أنف، فم، بلعوم، غدد لمفاوية، درقية...'),
 
                         Textarea::make('clinicalExamination.heart_chest_exam')
                             ->label('3. القلب والصدر')
                             ->rows(3)
-                            ->placeholder('أصوات القلب، النفخات، أصوات التنفس، حشرجات...')
-                            ->columnSpan(2),
+                            ->placeholder('أصوات القلب، النفخات، أصوات التنفس، حشرجات...'),
 
                         Textarea::make('clinicalExamination.abdomen_pelvis_exam')
                             ->label('4. البطن والحوض')
                             ->rows(3)
                             ->placeholder('شكل البطن، أصوات الأمعاء، الجس، الإيلام، الكتل، الأعضاء...')
-                            ->helperText('هذا من أهم الفحوصات في العيادة الهضمية')
-                            ->columnSpan(2),
+                            ->helperText('هذا من أهم الفحوصات في العيادة الهضمية'),
 
                         Textarea::make('clinicalExamination.extremities_exam')
                             ->label('5. الأطراف')
                             ->rows(3)
-                            ->placeholder('وذمات، تشوهات، حركة، دوران...')
-                            ->columnSpan(2),
+                            ->placeholder('وذمات، تشوهات، حركة، دوران...'),
 
                         Textarea::make('clinicalExamination.rectal_exam')
                             ->label('6. المس الشرجي (Digital Rectal Exam)')
                             ->rows(3)
                             ->placeholder('توتر العضلة، كتل، دم، بواسير...')
-                            ->helperText('فحص مهم في أمراض الجهاز الهضمي')
-                            ->columnSpan(2),
+                            ->helperText('فحص مهم في أمراض الجهاز الهضمي'),
                     ])
-                    ->columns(4)
+                    ->columns(3)
                     ->collapsible(),
 
                 // ==================== 3. إيكو البطن ====================
@@ -167,7 +161,7 @@ class ClinicalExaminationTab
                             ->rows(2)
                             ->placeholder('أي موجودات إضافية أو ملاحظات...'),
                     ])
-                    ->columns(3)
+                    ->columns(4)
                     ->collapsible()
                     ->collapsed(),
             ]);

@@ -5,10 +5,13 @@ namespace App\Filament\Resources\Visits\Schemas\DetailedVisit;
 use App\Models\Patient;
 use App\Models\Medication;
 use App\Models\ChronicDisease;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -29,32 +32,35 @@ class TimelineTab
                     ->icon('heroicon-o-calendar')
                     ->description('توقيت وتطور الأعراض')
                     ->schema([
-                        Select::make('timeline.onset')
+                        Radio::make('timeline.onset')
                             ->label('1. البدء')
                             ->options([
                                 'acute' => 'حاد',
                                 'chronic' => 'مزمن',
                                 'sudden' => 'مفاجئ',
                             ])
-                            ->placeholder('اختر نوع البدء'),
+                            ->inline()
+                            ->columnSpan(1),
 
-                        Select::make('timeline.frequency')
+                        Radio::make('timeline.frequency')
                             ->label('2. التكرار')
                             ->options([
                                 'episodic' => 'نوبي',
                                 'recurrent' => 'متكرر',
                                 'continuous' => 'مستمر',
                             ])
-                            ->placeholder('اختر التكرار'),
+                            ->inline()
+                            ->columnSpan(1),
 
-                        Select::make('timeline.evolution')
+                        Radio::make('timeline.evolution')
                             ->label('3. التطور')
                             ->options([
                                 'worsening' => 'تفاقم',
                                 'stable' => 'ثابت',
                                 'improving' => 'تراجع',
                             ])
-                            ->placeholder('اختر التطور'),
+                            ->inline()
+                            ->columnSpan(1),
                     ])
                     ->columns(3)
                     ->collapsible(),
@@ -64,44 +70,38 @@ class TimelineTab
                     ->icon('heroicon-o-exclamation-triangle')
                     ->description('ما يزيد أو يقلل الأعراض')
                     ->schema([
-                        Textarea::make('timeline.food_triggers')
+                        Checkbox::make('timeline.food_triggers')
                             ->label('1. محرضات غذائية')
-                            ->rows(2)
-                            ->placeholder('الأطعمة التي تزيد الأعراض...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
-                        Textarea::make('timeline.psychological_triggers')
+                        Checkbox::make('timeline.psychological_triggers')
                             ->label('2. محرضات نفسية')
-                            ->rows(2)
-                            ->placeholder('الضغوط النفسية، القلق...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
-                        Textarea::make('timeline.medication_triggers')
+                        Checkbox::make('timeline.medication_triggers')
                             ->label('3. محرضات دوائية')
-                            ->rows(2)
-                            ->placeholder('أدوية تزيد الأعراض...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
-                        Textarea::make('timeline.physical_triggers')
+                        Checkbox::make('timeline.physical_triggers')
                             ->label('4. محرضات فيزيائية')
-                            ->rows(2)
-                            ->placeholder('الجهد، الحركة، الوضعية...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
-                        Textarea::make('timeline.stimulant_triggers')
+                        Checkbox::make('timeline.stimulant_triggers')
                             ->label('5. منبهات')
-                            ->rows(2)
-                            ->placeholder('قهوة، شاي، كحول...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
                         Checkbox::make('timeline.smoking_trigger')
                             ->label('6. التدخين')
                             ->inline(false),
 
-                        Textarea::make('timeline.other_triggers')
+                        Checkbox::make('timeline.other_triggers')
                             ->label('7. محرضات أخرى')
-                            ->rows(2)
-                            ->placeholder('أي محرضات أخرى...')
+                            ->inline(false),
+
+                        Textarea::make('timeline.triggers_notes')
+                            ->label('📝 ملاحظات عامة عن العوامل المحرضة')
+                            ->rows(3)
+                            ->placeholder('أضف تفاصيل حول العوامل المحرضة المحددة أعلاه...')
                             ->columnSpanFull(),
                     ])
                     ->columns(4)
@@ -179,39 +179,16 @@ class TimelineTab
                     ->description('السوابق الطبية والجراحية - يتم المزامنة مع ملف المريض تلقائياً')
                     ->schema([
                         // ⭐ الأمراض المزمنة
-                        Select::make('chronic_diseases_sync')
+                        Repeater::make('chronic_diseases_data')
                             ->label('🔄 الأمراض المزمنة للمريض')
-                            ->multiple()
-                            ->options(ChronicDisease::query()->where('is_active', true)->pluck('name_ar', 'id'))
-                            ->searchable()
-                            ->preload()
-                            ->default(function (Get $get, $record) {
-                                // عند التحرير: تحميل من ملف المريض
-                                if ($record && $record->patient_id) {
-                                    return Patient::find($record->patient_id)
-                                        ?->chronicDiseases()
-                                        ->where('patient_chronic_diseases.is_active', true)
-                                        ->pluck('chronic_diseases.id')
-                                        ->toArray() ?? [];
-                                }
-
-                                // عند الإنشاء: تحميل من patient_id المختار
-                                $patientId = $get('patient_id');
-                                if ($patientId) {
-                                    return Patient::find($patientId)
-                                        ?->chronicDiseases()
-                                        ->where('patient_chronic_diseases.is_active', true)
-                                        ->pluck('chronic_diseases.id')
-                                        ->toArray() ?? [];
-                                }
-
-                                return [];
-                            })
-                            ->live()
-                            ->createOptionForm([
-                                Section::make('إضافة مرض مزمن جديد')
-                                    ->icon('heroicon-o-plus-circle')
-                                    ->schema([
+                            ->schema([
+                                Select::make('chronic_disease_id')
+                                    ->label('المرض')
+                                    ->required()
+                                    ->options(ChronicDisease::query()->where('is_active', true)->pluck('name_ar', 'id'))
+                                    ->searchable()
+                                    ->preload()
+                                    ->createOptionForm([
                                         TextInput::make('name_ar')
                                             ->label('اسم المرض بالعربية')
                                             ->required()
@@ -243,94 +220,112 @@ class TimelineTab
                                             ->placeholder('وصف المرض وأعراضه...')
                                             ->columnSpanFull(),
                                     ])
-                                    ->columns(4)
+                                    ->createOptionUsing(function (array $data): int {
+                                        $disease = ChronicDisease::create($data);
+
+                                        Notification::make()
+                                            ->title('تم إضافة المرض المزمن بنجاح')
+                                            ->body($disease->name_ar)
+                                            ->success()
+                                            ->icon('heroicon-o-check-circle')
+                                            ->send();
+
+                                        return $disease->id;
+                                    })
+                                    ->createOptionModalHeading('إضافة مرض مزمن جديد للنظام')
+                                    ->columnSpan(1),
+
+                                DatePicker::make('diagnosis_date')
+                                    ->label('تاريخ التشخيص')
+                                    ->placeholder('اختر التاريخ')
+                                    ->native(false)
+                                    ->displayFormat('d/m/Y')
+                                    ->maxDate(now())
+                                    ->columnSpan(1),
+
+                                Textarea::make('notes')
+                                    ->label('الملاحظات')
+                                    ->rows(2)
+                                    ->placeholder('ملاحظات إضافية عن المرض...')
+                                    ->columnSpanFull(),
                             ])
-                            ->createOptionUsing(function (array $data): int {
-                                $disease = ChronicDisease::create($data);
-
-                                Notification::make()
-                                    ->title('تم إضافة المرض المزمن بنجاح')
-                                    ->body($disease->name_ar)
-                                    ->success()
-                                    ->icon('heroicon-o-check-circle')
-                                    ->send();
-
-                                return $disease->id;
-                            })
-                            ->createOptionModalHeading('إضافة مرض مزمن جديد للنظام')
-                            ->helperText(function (Get $get, $record) {
-                                // عرض القيم الحالية للطبيب
-                                $patientId = $record?->patient_id ?? $get('patient_id');
-                                if (!$patientId) {
-                                    return '✓ يتم حفظ التعديلات في ملف المريض مباشرة | يمكنك الإضافة من زر (+)';
-                                }
-
-                                $patient = Patient::find($patientId);
-                                if (!$patient) {
-                                    return '✓ يتم حفظ التعديلات في ملف المريض مباشرة | يمكنك الإضافة من زر (+)';
-                                }
-
-                                $diseases = $patient->chronicDiseases()
-                                    ->where('patient_chronic_diseases.is_active', true)
-                                    ->get();
-
-                                if ($diseases->isEmpty()) {
-                                    return '📋 لا توجد أمراض مزمنة مسجلة حالياً في ملف المريض';
-                                }
-
-                                $diseasesList = $diseases->pluck('name_ar')->implode('، ');
-                                return "📋 الأمراض المزمنة الحالية: {$diseasesList}";
-                            })
-                            ->columnSpanFull(),
-
-                        // ⭐ الأدوية الدائمة
-                        Select::make('permanent_medications_sync')
-                            ->label('💊 الأدوية الدائمة للمريض')
-                            ->multiple()
-                            ->options(function () {
-                                return Medication::query()
-                                    ->where('is_active', true)
-                                    ->get()
-                                    ->mapWithKeys(function ($med) {
-                                        $label = $med->name_ar;
-                                        if ($med->strength) {
-                                            $label .= " ({$med->strength})";
-                                        }
-                                        if ($med->generic_name) {
-                                            $label .= " - {$med->generic_name}";
-                                        }
-                                        return [$med->id => $label];
-                                    });
-                            })
-                            ->searchable()
-                            ->preload()
+                            ->columns(2)
+                            ->reorderable(false)
+                            ->itemLabel(
+                                fn(array $state): ?string =>
+                                ChronicDisease::find($state['chronic_disease_id'] ?? null)?->name_ar ?? 'مرض جديد'
+                            )
+                            ->addActionLabel('+ إضافة مرض مزمن')
                             ->default(function (Get $get, $record) {
                                 // عند التحرير: تحميل من ملف المريض
                                 if ($record && $record->patient_id) {
-                                    return Patient::find($record->patient_id)
-                                        ?->permanentMedications()
-                                        ->where('is_active', true)
-                                        ->pluck('medication_id')
-                                        ->toArray() ?? [];
+                                    $patient = Patient::find($record->patient_id);
+                                    if ($patient) {
+                                        return $patient->chronicDiseases()
+                                            ->where('patient_chronic_diseases.is_active', true)
+                                            ->get()
+                                            ->map(function ($disease) {
+                                                return [
+                                                    'chronic_disease_id' => $disease->id,
+                                                    'diagnosis_date' => $disease->pivot->diagnosis_date,
+                                                    'notes' => $disease->pivot->notes,
+                                                ];
+                                            })
+                                            ->toArray();
+                                    }
                                 }
 
                                 // عند الإنشاء: تحميل من patient_id المختار
                                 $patientId = $get('patient_id');
                                 if ($patientId) {
-                                    return Patient::find($patientId)
-                                        ?->permanentMedications()
-                                        ->where('is_active', true)
-                                        ->pluck('medication_id')
-                                        ->toArray() ?? [];
+                                    $patient = Patient::find($patientId);
+                                    if ($patient) {
+                                        return $patient->chronicDiseases()
+                                            ->where('patient_chronic_diseases.is_active', true)
+                                            ->get()
+                                            ->map(function ($disease) {
+                                                return [
+                                                    'chronic_disease_id' => $disease->id,
+                                                    'diagnosis_date' => $disease->pivot->diagnosis_date,
+                                                    'notes' => $disease->pivot->notes,
+                                                ];
+                                            })
+                                            ->toArray();
+                                    }
                                 }
 
                                 return [];
                             })
-                            ->live()
-                            ->createOptionForm([
-                                Section::make('إضافة دواء جديد')
-                                    ->icon('heroicon-o-plus-circle')
-                                    ->schema([
+                            ->defaultItems(0)
+                            ->columnSpanFull()
+                            ->collapsed()
+                            ->cloneable(),
+
+                        // ⭐ الأدوية الدائمة
+                        Repeater::make('permanent_medications_data')
+                            ->label('💊 الأدوية الدائمة للمريض')
+                            ->schema([
+                                Select::make('medication_id')
+                                    ->label('الدواء')
+                                    ->required()
+                                    ->options(function () {
+                                        return Medication::query()
+                                            ->where('is_active', true)
+                                            ->get()
+                                            ->mapWithKeys(function ($med) {
+                                                $label = $med->name_ar;
+                                                if ($med->strength) {
+                                                    $label .= " ({$med->strength})";
+                                                }
+                                                if ($med->generic_name) {
+                                                    $label .= " - {$med->generic_name}";
+                                                }
+                                                return [$med->id => $label];
+                                            });
+                                    })
+                                    ->searchable()
+                                    ->preload()
+                                    ->createOptionForm([
                                         TextInput::make('name_ar')
                                             ->label('اسم الدواء بالعربية')
                                             ->required()
@@ -400,52 +395,127 @@ class TimelineTab
                                             ->placeholder('وصف الدواء واستخداماته...')
                                             ->columnSpanFull(),
                                     ])
-                                    ->columns(4)
+                                    ->createOptionUsing(function (array $data): int {
+                                        $medication = Medication::create($data);
+
+                                        Notification::make()
+                                            ->title('تم إضافة الدواء بنجاح')
+                                            ->body($medication->name_ar)
+                                            ->success()
+                                            ->icon('heroicon-o-check-circle')
+                                            ->send();
+
+                                        return $medication->id;
+                                    })
+                                    ->createOptionModalHeading('إضافة دواء جديد للنظام')
+                                    ->columnSpan(1),
+
+                                TextInput::make('dosage')
+                                    ->label('الجرعة')
+                                    ->placeholder('مثال: 500mg')
+                                    ->maxLength(100)
+                                    ->columnSpan(1),
+
+                                TextInput::make('frequency')
+                                    ->label('التكرار')
+                                    ->placeholder('مثال: مرتين يومياً')
+                                    ->maxLength(100)
+                                    ->columnSpan(1),
+
+                                Select::make('route')
+                                    ->label('طريقة التناول')
+                                    ->options([
+                                        'oral' => 'فموي',
+                                        'injection' => 'حقن',
+                                        'topical' => 'موضعي',
+                                        'inhalation' => 'استنشاق',
+                                        'rectal' => 'شرجي',
+                                        'other' => 'أخرى'
+                                    ])
+                                    ->native(false)
+                                    ->default('oral')
+                                    ->columnSpan(1),
+
+                                DatePicker::make('start_date')
+                                    ->label('تاريخ البدء')
+                                    ->placeholder('اختر التاريخ')
+                                    ->native(false)
+                                    ->displayFormat('d/m/Y')
+                                    ->maxDate(now())
+                                    ->columnSpan(1),
+
+                                DatePicker::make('end_date')
+                                    ->label('تاريخ الإيقاف (اختياري)')
+                                    ->placeholder('اختر التاريخ')
+                                    ->native(false)
+                                    ->displayFormat('d/m/Y')
+                                    ->columnSpan(1),
+
+                                Textarea::make('notes')
+                                    ->label('الملاحظات')
+                                    ->rows(2)
+                                    ->placeholder('ملاحظات إضافية عن الدواء...')
+                                    ->columnSpanFull(),
                             ])
-                            ->createOptionUsing(function (array $data): int {
-                                $medication = Medication::create($data);
-
-                                Notification::make()
-                                    ->title('تم إضافة الدواء بنجاح')
-                                    ->body($medication->name_ar)
-                                    ->success()
-                                    ->icon('heroicon-o-check-circle')
-                                    ->send();
-
-                                return $medication->id;
-                            })
-                            ->createOptionModalHeading('إضافة دواء جديد للنظام')
-                            ->helperText(function (Get $get, $record) {
-                                // عرض القيم الحالية للطبيب
-                                $patientId = $record?->patient_id ?? $get('patient_id');
-                                if (!$patientId) {
-                                    return '✓ يتم حفظ التعديلات في ملف المريض مباشرة | يمكنك الإضافة من زر (+)';
-                                }
-
-                                $patient = Patient::find($patientId);
-                                if (!$patient) {
-                                    return '✓ يتم حفظ التعديلات في ملف المريض مباشرة | يمكنك الإضافة من زر (+)';
-                                }
-
-                                $medications = $patient->permanentMedications()
-                                    ->where('patient_permanent_medications.is_active', true)
-                                    ->get();
-
-                                if ($medications->isEmpty()) {
-                                    return '💊 لا توجد أدوية دائمة مسجلة حالياً في ملف المريض';
-                                }
-
-                                $medicationsList = $medications->map(function ($med) {
-                                    $text = $med->name_ar;
-                                    if ($med->strength) {
-                                        $text .= ' (' . $med->strength . ')';
+                            ->columns(2)
+                            ->reorderable(false)
+                            ->itemLabel(
+                                fn(array $state): ?string =>
+                                Medication::find($state['medication_id'] ?? null)?->name_ar ?? 'دواء جديد'
+                            )
+                            ->addActionLabel('+ إضافة دواء دائم')
+                            ->default(function (Get $get, $record) {
+                                // عند التحرير: تحميل من ملف المريض
+                                if ($record && $record->patient_id) {
+                                    $patient = Patient::find($record->patient_id);
+                                    if ($patient) {
+                                        return $patient->permanentMedications()
+                                            ->where('patient_permanent_medications.is_active', true)
+                                            ->get()
+                                            ->map(function ($medication) {
+                                                return [
+                                                    'medication_id' => $medication->id,
+                                                    'dosage' => $medication->pivot->dosage,
+                                                    'frequency' => $medication->pivot->frequency,
+                                                    'route' => $medication->pivot->route ?? 'oral',
+                                                    'start_date' => $medication->pivot->start_date,
+                                                    'end_date' => $medication->pivot->end_date,
+                                                    'notes' => $medication->pivot->notes,
+                                                ];
+                                            })
+                                            ->toArray();
                                     }
-                                    return $text;
-                                })->implode('، ');
+                                }
 
-                                return "💊 الأدوية الدائمة الحالية: {$medicationsList}";
+                                // عند الإنشاء: تحميل من patient_id المختار
+                                $patientId = $get('patient_id');
+                                if ($patientId) {
+                                    $patient = Patient::find($patientId);
+                                    if ($patient) {
+                                        return $patient->permanentMedications()
+                                            ->where('patient_permanent_medications.is_active', true)
+                                            ->get()
+                                            ->map(function ($medication) {
+                                                return [
+                                                    'medication_id' => $medication->id,
+                                                    'dosage' => $medication->pivot->dosage,
+                                                    'frequency' => $medication->pivot->frequency,
+                                                    'route' => $medication->pivot->route ?? 'oral',
+                                                    'start_date' => $medication->pivot->start_date,
+                                                    'end_date' => $medication->pivot->end_date,
+                                                    'notes' => $medication->pivot->notes,
+                                                ];
+                                            })
+                                            ->toArray();
+                                    }
+                                }
+
+                                return [];
                             })
-                            ->columnSpanFull(),
+                            ->defaultItems(0)
+                            ->columnSpanFull()
+                            ->collapsed()
+                            ->cloneable(),
 
                         // ⭐ حالات طبية أخرى (نص حر)
                         Textarea::make('timeline.medical_conditions')
@@ -456,11 +526,41 @@ class TimelineTab
                             ->columnSpanFull(),
 
                         // ⭐ الجراحات السابقة
-                        Textarea::make('timeline.previous_surgeries')
+                        Repeater::make('timeline.previous_surgeries')
                             ->label('🏥 الجراحات السابقة')
-                            ->rows(3)
-                            ->placeholder('العمليات الجراحية وتواريخها...')
-                            ->columnSpanFull(),
+                            ->schema([
+                                TextInput::make('surgery_name')
+                                    ->label('اسم الجراحة')
+                                    ->required()
+                                    ->placeholder('مثال: استئصال المرارة، تنظير المعدة...')
+                                    ->maxLength(255)
+                                    ->columnSpan(1),
+
+                                DatePicker::make('surgery_date')
+                                    ->label('تاريخ الجراحة')
+                                    ->placeholder('اختر التاريخ')
+                                    ->native(false)
+                                    ->displayFormat('d/m/Y')
+                                    ->maxDate(now())
+                                    ->columnSpan(1),
+
+                                Textarea::make('details')
+                                    ->label('التفاصيل')
+                                    ->rows(2)
+                                    ->placeholder('ملاحظات إضافية عن الجراحة...')
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(2)
+                            ->reorderable(false)
+                            ->itemLabel(
+                                fn(array $state): ?string =>
+                                $state['surgery_name'] ?? 'جراحة جديدة'
+                            )
+                            ->addActionLabel('+ إضافة جراحة')
+                            ->defaultItems(0)
+                            ->columnSpanFull()
+                            ->collapsed()
+                            ->cloneable(),
                     ])
                     ->columns(1)
                     ->collapsible(),

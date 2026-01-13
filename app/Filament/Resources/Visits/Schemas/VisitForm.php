@@ -6,6 +6,7 @@ use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Tabs;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\PatientVisitInfoTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\ComplaintSymptomTab;
+use App\Filament\Resources\Visits\Schemas\DetailedVisit\OrganizedComplaintTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\TimelineTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\MedicalAttachmentTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\ClinicalExaminationTab;
@@ -23,6 +24,7 @@ class VisitForm
                         // ==================== التبويبات التفصيلية ====================
                         PatientVisitInfoTab::make(),
                         ComplaintSymptomTab::make(),
+                        OrganizedComplaintTab::make(),
                         TimelineTab::make(),
                         MedicalAttachmentTab::make(),
                         ClinicalExaminationTab::make(),

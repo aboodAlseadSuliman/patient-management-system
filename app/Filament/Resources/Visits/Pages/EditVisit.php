@@ -91,43 +91,40 @@ class EditVisit extends EditRecord
         $visit = $this->record;
 
         // ⭐ مزامنة الأمراض المزمنة مع ملف المريض
-        if (isset($data['chronic_diseases_sync'])) {
+        if (isset($data['chronic_diseases_data'])) {
             $visit->patient->chronicDiseases()->sync(
-                collect($data['chronic_diseases_sync'])->mapWithKeys(function ($diseaseId) use ($visit) {
-                    // الاحتفاظ بالبيانات الموجودة أو إنشاء جديدة
-                    $existing = $visit->patient->chronicDiseases()
-                        ->where('chronic_disease_id', $diseaseId)
-                        ->first();
-
-                    return [$diseaseId => [
-                        'diagnosis_date' => $existing?->pivot->diagnosis_date ?? $visit->visit_date,
-                        'notes' => $existing?->pivot->notes,
-                        'is_active' => true,
-                        'updated_at' => now(),
-                    ]];
-                })->toArray()
+                collect($data['chronic_diseases_data'])->mapWithKeys(function ($diseaseData) use ($visit) {
+                    if (isset($diseaseData['chronic_disease_id'])) {
+                        return [$diseaseData['chronic_disease_id'] => [
+                            'diagnosis_date' => $diseaseData['diagnosis_date'] ?? $visit->visit_date,
+                            'notes' => $diseaseData['notes'] ?? null,
+                            'is_active' => true,
+                            'updated_at' => now(),
+                        ]];
+                    }
+                    return [];
+                })->filter()->toArray()
             );
         }
 
         // ⭐ مزامنة الأدوية الدائمة مع ملف المريض
-        if (isset($data['permanent_medications_sync'])) {
+        if (isset($data['permanent_medications_data'])) {
             $visit->patient->permanentMedications()->sync(
-                collect($data['permanent_medications_sync'])->mapWithKeys(function ($medicationId) use ($visit) {
-                    // الاحتفاظ بالبيانات الموجودة أو إنشاء جديدة
-                    $existing = $visit->patient->permanentMedications()
-                        ->where('medication_id', $medicationId)
-                        ->first();
-
-                    return [$medicationId => [
-                        'dosage' => $existing?->dosage,
-                        'frequency' => $existing?->frequency,
-                        'route' => $existing?->route ?? 'oral',
-                        'start_date' => $existing?->start_date ?? now(),
-                        'notes' => $existing?->notes,
-                        'is_active' => true,
-                        'updated_at' => now(),
-                    ]];
-                })->toArray()
+                collect($data['permanent_medications_data'])->mapWithKeys(function ($medicationData) use ($visit) {
+                    if (isset($medicationData['medication_id'])) {
+                        return [$medicationData['medication_id'] => [
+                            'dosage' => $medicationData['dosage'] ?? null,
+                            'frequency' => $medicationData['frequency'] ?? null,
+                            'route' => $medicationData['route'] ?? 'oral',
+                            'start_date' => $medicationData['start_date'] ?? now(),
+                            'end_date' => $medicationData['end_date'] ?? null,
+                            'notes' => $medicationData['notes'] ?? null,
+                            'is_active' => true,
+                            'updated_at' => now(),
+                        ]];
+                    }
+                    return [];
+                })->filter()->toArray()
             );
         }
 

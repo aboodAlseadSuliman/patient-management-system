@@ -19,6 +19,7 @@ class Visit extends Model
         'visit_number',
         'visit_date',
         'visit_type',
+        'organized_complaint',
         'preliminary_diagnosis_id',
         'chief_complaint',
         'associated_symptoms',
@@ -48,6 +49,7 @@ class Visit extends Model
         'visit_date' => 'date',
         'next_visit_date' => 'date',
         'vital_signs' => 'array',
+        'organized_complaint' => 'array',
         'is_completed' => 'boolean',
 
     ];

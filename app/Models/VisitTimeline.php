@@ -14,6 +14,7 @@ class VisitTimeline extends Model
         // العوامل المحرضة
         'food_triggers', 'psychological_triggers', 'medication_triggers',
         'physical_triggers', 'stimulant_triggers', 'smoking_trigger', 'other_triggers',
+        'triggers_notes', // ملاحظات عامة للعوامل المحرضة
         // عوامل الخطورة
         'loss_of_appetite', 'weight_loss_amount', 'gi_bleeding', 'night_symptoms',
         'recent_symptoms', 'recurrent_ulcers', 'dysphagia_risk', 'recurrent_vomiting',
@@ -23,7 +24,13 @@ class VisitTimeline extends Model
     ];
 
     protected $casts = [
+        'food_triggers' => 'boolean',
+        'psychological_triggers' => 'boolean',
+        'medication_triggers' => 'boolean',
+        'physical_triggers' => 'boolean',
+        'stimulant_triggers' => 'boolean',
         'smoking_trigger' => 'boolean',
+        'other_triggers' => 'boolean',
         'loss_of_appetite' => 'boolean',
         'night_symptoms' => 'boolean',
         'recent_symptoms' => 'boolean',
@@ -31,6 +38,7 @@ class VisitTimeline extends Model
         'dysphagia_risk' => 'boolean',
         'recurrent_vomiting' => 'boolean',
         'bowel_habit_change_risk' => 'boolean',
+        'previous_surgeries' => 'array', // تحويل JSON إلى Array تلقائياً
     ];
 
     public function visit(): BelongsTo

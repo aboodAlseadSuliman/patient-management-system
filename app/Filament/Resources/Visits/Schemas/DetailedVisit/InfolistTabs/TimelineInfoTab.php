@@ -312,6 +312,29 @@ class TimelineInfoTab
                         // ⭐ الجراحات السابقة
                         TextEntry::make('timeline.previous_surgeries')
                             ->label('🏥 الجراحات السابقة')
+                            ->state(function ($record) {
+                                if (!$record || !$record->timeline || empty($record->timeline->previous_surgeries)) {
+                                    return 'لا توجد جراحات سابقة';
+                                }
+
+                                $surgeries = $record->timeline->previous_surgeries;
+
+                                return collect($surgeries)->map(function ($surgery, $index) {
+                                    $number = $index + 1;
+                                    $text = "**{$number}. {$surgery['surgery_name']}**";
+
+                                    if (!empty($surgery['surgery_date'])) {
+                                        $date = \Carbon\Carbon::parse($surgery['surgery_date'])->locale('ar')->isoFormat('D MMMM YYYY');
+                                        $text .= "\n   📅 التاريخ: {$date}";
+                                    }
+
+                                    if (!empty($surgery['details'])) {
+                                        $text .= "\n   📝 التفاصيل: {$surgery['details']}";
+                                    }
+
+                                    return $text;
+                                })->implode("\n\n");
+                            })
                             ->markdown()
                             ->placeholder('لا توجد جراحات سابقة')
                             ->columnSpanFull(),

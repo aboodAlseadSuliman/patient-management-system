@@ -17,7 +17,7 @@ class TreatmentPlanTab
     {
         return Tab::make('خطة العلاج')
             ->icon('heroicon-o-clipboard-document-check')
-            ->badge(fn ($get) => $get('treatmentPlan.medication_name') ? '✓' : null)
+            ->badge(fn($get) => $get('treatmentPlan.medication_name') ? '✓' : null)
             ->badgeColor('success')
             ->schema([
 
@@ -26,112 +26,195 @@ class TreatmentPlanTab
                     ->icon('heroicon-o-clipboard-document-list')
                     ->description('تعليمات غذائية ونصائح حسب التشخيص')
                     ->schema([
-                        Textarea::make('treatmentPlan.gerd_instructions')
+                        Checkbox::make('treatmentPlan.gerd_instructions')
                             ->label('1. القلس المريئي (GERD)')
-                            ->rows(2)
-                            ->placeholder('تعليمات القلس المريئي...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
-                        Textarea::make('treatmentPlan.dyspepsia_instructions')
+                        Checkbox::make('treatmentPlan.dyspepsia_instructions')
                             ->label('2. عسر الهضم')
-                            ->rows(2)
-                            ->placeholder('تعليمات عسر الهضم...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
-                        Textarea::make('treatmentPlan.ibs_instructions')
+                        Checkbox::make('treatmentPlan.ibs_instructions')
                             ->label('3. تشنج الكولون (IBS)')
-                            ->rows(2)
-                            ->placeholder('تعليمات تشنج الكولون...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
-                        Textarea::make('treatmentPlan.constipation_instructions')
+                        Checkbox::make('treatmentPlan.constipation_instructions')
                             ->label('4. الإمساك')
-                            ->rows(2)
-                            ->placeholder('تعليمات الإمساك...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
-                        Textarea::make('treatmentPlan.gastroenteritis_instructions')
+                        Checkbox::make('treatmentPlan.gastroenteritis_instructions')
                             ->label('5. التهاب الأمعاء')
-                            ->rows(2)
-                            ->placeholder('تعليمات التهاب الأمعاء...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
-                        Textarea::make('treatmentPlan.celiac_instructions')
+                        Checkbox::make('treatmentPlan.celiac_instructions')
                             ->label('6. الداء الزلاقي (Celiac)')
-                            ->rows(2)
-                            ->placeholder('تعليمات الداء الزلاقي...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
-                        Textarea::make('treatmentPlan.ibd_instructions')
+                        Checkbox::make('treatmentPlan.ibd_instructions')
                             ->label('7. الداء المعوي الالتهابي (IBD)')
-                            ->rows(2)
-                            ->placeholder('تعليمات الداء المعوي الالتهابي...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
-                        Textarea::make('treatmentPlan.hemorrhoids_fissure_instructions')
+                        Checkbox::make('treatmentPlan.hemorrhoids_fissure_instructions')
                             ->label('8. البواسير والشق الشرجي')
-                            ->rows(2)
-                            ->placeholder('تعليمات البواسير والشق الشرجي...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
-                        Textarea::make('treatmentPlan.hepatitis_a_instructions')
+                        Checkbox::make('treatmentPlan.hepatitis_a_instructions')
                             ->label('9. التهاب الكبد A')
-                            ->rows(2)
-                            ->placeholder('تعليمات التهاب الكبد A...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
-                        Textarea::make('treatmentPlan.hepatitis_b_instructions')
+                        Checkbox::make('treatmentPlan.hepatitis_b_instructions')
                             ->label('10. التهاب الكبد B')
-                            ->rows(2)
-                            ->placeholder('تعليمات التهاب الكبد B...')
-                            ->columnSpan(2),
+                            ->inline(false),
 
-                        Textarea::make('treatmentPlan.cirrhosis_instructions')
+                        Checkbox::make('treatmentPlan.cirrhosis_instructions')
                             ->label('11. تشمع الكبد')
-                            ->rows(2)
-                            ->placeholder('تعليمات تشمع الكبد...')
-                            ->columnSpan(2),
+                            ->inline(false),
                     ])
                     ->columns(4)
                     ->collapsible()
                     ->collapsed(),
 
-                // ==================== 2. الوصفة الدوائية ====================
-                Section::make('الوصفة الدوائية')
+                // ==================== 2. الأدوية الموصوفة ====================
+                Section::make('الأدوية الموصوفة')
                     ->icon('heroicon-o-beaker')
-                    ->description('الأدوية الموصوفة')
                     ->schema([
-                        Textarea::make('treatmentPlan.medication_name')
-                            ->label('1. الدواء المطلوب')
-                            ->rows(3)
-                            ->placeholder('اسم الدواء، الجرعة...')
-                            ->columnSpan(2),
+                        Repeater::make('medicationsData')
+                            ->label('الأدوية')
+                            ->schema([
+                                Select::make('medication_id')
+                                    ->label('اسم الدواء')
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
+                                    ->options(function () {
+                                        return \App\Models\Medication::where('is_active', true)
+                                            ->orderBy('name_ar')
+                                            ->get()
+                                            ->mapWithKeys(function ($medication) {
+                                                $label = $medication->name_ar;
+                                                if ($medication->strength) {
+                                                    $label .= " ({$medication->strength})";
+                                                }
+                                                if ($medication->dosage_form) {
+                                                    $forms = [
+                                                        'tablet' => 'حبوب',
+                                                        'capsule' => 'كبسولات',
+                                                        'syrup' => 'شراب',
+                                                        'injection' => 'حقن',
+                                                        'cream' => 'كريم',
+                                                        'ointment' => 'مرهم',
+                                                        'drops' => 'قطرة',
+                                                        'spray' => 'رذاذ',
+                                                        'inhaler' => 'بخاخ',
+                                                        'suppository' => 'تحاميل',
+                                                        'patch' => 'لصقة',
+                                                        'other' => 'أخرى',
+                                                    ];
+                                                    $label .= ' - ' . ($forms[$medication->dosage_form] ?? $medication->dosage_form);
+                                                }
+                                                return [$medication->id => $label];
+                                            });
+                                    })
+                                    ->createOptionForm([
+                                        TextInput::make('name_ar')
+                                            ->label('الاسم بالعربية')
+                                            ->required()
+                                            ->maxLength(255),
 
-                        Select::make('treatmentPlan.medication_form')
-                            ->label('2. الشكل الدوائي')
-                            ->options([
-                                'tablets' => 'مضغوطات',
-                                'capsules' => 'كبسولات',
-                                'syrup' => 'شراب',
-                                'suppositories' => 'تحاميل',
-                                'solution' => 'محلول',
+                                        TextInput::make('name_en')
+                                            ->label('الاسم بالإنجليزية')
+                                            ->maxLength(255),
+
+                                        Select::make('dosage_form')
+                                            ->label('الشكل الدوائي')
+                                            ->options([
+                                                'tablet' => 'حبوب',
+                                                'capsule' => 'كبسولات',
+                                                'syrup' => 'شراب',
+                                                'injection' => 'حقن',
+                                                'cream' => 'كريم',
+                                                'ointment' => 'مرهم',
+                                                'drops' => 'قطرة',
+                                                'spray' => 'رذاذ',
+                                                'inhaler' => 'بخاخ',
+                                                'suppository' => 'تحاميل',
+                                                'patch' => 'لصقة',
+                                                'other' => 'أخرى',
+                                            ])
+                                            ->required(),
+
+                                        TextInput::make('strength')
+                                            ->label('التركيز')
+                                            ->placeholder('مثال: 500mg, 10ml, 5%')
+                                            ->maxLength(100),
+
+                                        TextInput::make('generic_name')
+                                            ->label('الاسم العلمي')
+                                            ->maxLength(255),
+                                    ])
+                                    ->createOptionUsing(function (array $data) {
+                                        $data['is_active'] = true;
+                                        return \App\Models\Medication::create($data)->id;
+                                    })
+                                    ->columnSpan(2),
+
+                                TextInput::make('dosage')
+                                    ->label('الجرعة')
+                                    ->placeholder('مثال: حبة واحدة، ملعقة صغيرة، 5ml')
+                                    ->columnSpan(1),
+
+                                TextInput::make('frequency')
+                                    ->label('عدد المرات')
+                                    ->placeholder('مثال: 3 مرات يومياً، كل 8 ساعات')
+                                    ->columnSpan(1),
+
+                                TextInput::make('duration')
+                                    ->label('المدة')
+                                    ->placeholder('مثال: 7 أيام، أسبوعين، شهر')
+                                    ->columnSpan(1),
+
+                                TextInput::make('instructions')
+                                    ->label('تعليمات الاستخدام')
+                                    ->placeholder('مثال: قبل الأكل، بعد الأكل، مع الماء')
+                                    ->columnSpan(1),
+
+                                Textarea::make('notes')
+                                    ->label('ملاحظات إضافية')
+                                    ->placeholder('أي ملاحظات خاصة بهذا الدواء...')
+                                    ->rows(2)
+                                    ->columnSpanFull(),
                             ])
-                            ->placeholder('اختر الشكل الدوائي')
-                            ->columnSpan(1),
+                            ->columns(2)
+                            ->reorderable(false)
+                            ->itemLabel(
+                                fn(array $state): ?string =>
+                                \App\Models\Medication::find($state['medication_id'])?->name_ar ?? 'دواء جديد'
+                            )
+                            ->addActionLabel('إضافة دواء')
+                            ->defaultItems(0)
+                            ->columnSpanFull()
+                            ->afterStateHydrated(function ($component, $state, $record) {
+                                if ($record) {
+                                    $record->load('medications');
 
-                        TextInput::make('treatmentPlan.duration')
-                            ->label('4. المدة الزمنية')
-                            ->placeholder('مثال: 7 أيام، أسبوعين، شهر...')
-                            ->columnSpan(1),
+                                    if ($record->medications->count() > 0) {
+                                        $data = $record->medications->map(function ($medication) {
+                                            return [
+                                                'medication_id' => $medication->id,
+                                                'dosage' => $medication->pivot->dosage,
+                                                'frequency' => $medication->pivot->frequency,
+                                                'duration' => $medication->pivot->duration,
+                                                'notes' => $medication->pivot->notes,
+                                            ];
+                                        })->toArray();
 
-                        Textarea::make('treatmentPlan.usage_instructions')
-                            ->label('3. طريقة الاستخدام')
-                            ->rows(2)
-                            ->placeholder('كيفية تناول الدواء، قبل أو بعد الطعام...')
-                            ->columnSpanFull(),
+                                        $component->state($data);
+                                    }
+                                }
+                            }),
                     ])
-                    ->columns(4)
                     ->collapsible(),
+
 
                 // ==================== 3. التحاليل المطلوبة ====================
                 Section::make('التحاليل المطلوبة')
@@ -175,6 +258,40 @@ class TreatmentPlanTab
                                     ->required()
                                     ->disableOptionsWhenSelectedInSiblingRepeaterItems()
                                     ->live()
+                                    ->createOptionForm([
+                                        TextInput::make('name_ar')
+                                            ->label('الاسم بالعربية')
+                                            ->required()
+                                            ->maxLength(255),
+
+                                        TextInput::make('name_en')
+                                            ->label('الاسم بالإنجليزية')
+                                            ->maxLength(255),
+
+                                        TextInput::make('abbreviation')
+                                            ->label('الاختصار')
+                                            ->maxLength(50),
+
+                                        Select::make('category')
+                                            ->label('الفئة')
+                                            ->options([
+                                                'blood' => 'تحاليل الدم',
+                                                'urine' => 'تحاليل البول',
+                                                'stool' => 'تحاليل البراز',
+                                                'biochemistry' => 'كيمياء حيوية',
+                                                'immunology' => 'مناعة',
+                                                'microbiology' => 'ميكروبيولوجي',
+                                                'hormones' => 'هرمونات',
+                                                'tumor_markers' => 'علامات الأورام',
+                                                'other' => 'أخرى',
+                                            ])
+                                            ->required(),
+                                    ])
+                                    ->createOptionUsing(function (array $data) {
+                                        $data['is_active'] = true;
+                                        $data['usage_count'] = 0;
+                                        return \App\Models\LabTest::create($data)->id;
+                                    })
                                     ->columnSpan(2),
 
                                 Textarea::make('notes')
@@ -186,13 +303,14 @@ class TreatmentPlanTab
                             ->columns(2)
                             ->reorderable()
                             ->collapsible()
-                            ->itemLabel(fn (array $state): ?string =>
+                            ->itemLabel(
+                                fn(array $state): ?string =>
                                 \App\Models\LabTest::find($state['lab_test_id'])?->name_ar ?? 'تحليل جديد'
                             )
                             ->addActionLabel('إضافة تحليل')
                             ->defaultItems(0)
                             ->columnSpanFull()
-                            ->visible(fn ($get) => $get('lab_tests_input_method') === 'detailed')
+                            ->visible(fn($get) => $get('lab_tests_input_method') === 'detailed')
                             ->afterStateHydrated(function ($component, $state, $record) {
                                 \Log::info('TreatmentPlanTab - afterStateHydrated called', [
                                     'has_record' => $record !== null,
@@ -245,8 +363,42 @@ class TreatmentPlanTab
                             })
                             ->placeholder('اختر التحاليل المطلوبة...')
                             ->helperText('يمكنك اختيار عدة تحاليل مرة واحدة')
+                            ->createOptionForm([
+                                TextInput::make('name_ar')
+                                    ->label('الاسم بالعربية')
+                                    ->required()
+                                    ->maxLength(255),
+
+                                TextInput::make('name_en')
+                                    ->label('الاسم بالإنجليزية')
+                                    ->maxLength(255),
+
+                                TextInput::make('abbreviation')
+                                    ->label('الاختصار')
+                                    ->maxLength(50),
+
+                                Select::make('category')
+                                    ->label('الفئة')
+                                    ->options([
+                                        'blood' => 'تحاليل الدم',
+                                        'urine' => 'تحاليل البول',
+                                        'stool' => 'تحاليل البراز',
+                                        'biochemistry' => 'كيمياء حيوية',
+                                        'immunology' => 'مناعة',
+                                        'microbiology' => 'ميكروبيولوجي',
+                                        'hormones' => 'هرمونات',
+                                        'tumor_markers' => 'علامات الأورام',
+                                        'other' => 'أخرى',
+                                    ])
+                                    ->required(),
+                            ])
+                            ->createOptionUsing(function (array $data) {
+                                $data['is_active'] = true;
+                                $data['usage_count'] = 0;
+                                return \App\Models\LabTest::create($data)->id;
+                            })
                             ->columnSpanFull()
-                            ->visible(fn ($get) => $get('lab_tests_input_method') === 'simple')
+                            ->visible(fn($get) => $get('lab_tests_input_method') === 'simple')
                             ->afterStateHydrated(function ($component, $state, $record, $get) {
                                 if ($record) {
                                     $record->load('labTests');
@@ -262,110 +414,13 @@ class TreatmentPlanTab
                             ->placeholder('مثال: جميع التحاليل على الريق، تجنب الأدوية قبل التحليل...')
                             ->rows(3)
                             ->columnSpanFull()
-                            ->visible(fn ($get) => $get('lab_tests_input_method') === 'simple'),
+                            ->visible(fn($get) => $get('lab_tests_input_method') === 'simple'),
                     ])
                     ->collapsible(),
 
-                // ==================== 4. الأدوية الموصوفة ====================
-                Section::make('الأدوية الموصوفة')
-                    ->icon('heroicon-o-beaker')
-                    ->schema([
-                        Repeater::make('medicationsData')
-                            ->label('الأدوية')
-                            ->schema([
-                                Select::make('medication_id')
-                                    ->label('اسم الدواء')
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->options(function () {
-                                        return \App\Models\Medication::where('is_active', true)
-                                            ->orderBy('name_ar')
-                                            ->get()
-                                            ->mapWithKeys(function ($medication) {
-                                                $label = $medication->name_ar;
-                                                if ($medication->strength) {
-                                                    $label .= " ({$medication->strength})";
-                                                }
-                                                if ($medication->dosage_form) {
-                                                    $forms = [
-                                                        'tablet' => 'حبوب',
-                                                        'capsule' => 'كبسولات',
-                                                        'syrup' => 'شراب',
-                                                        'injection' => 'حقن',
-                                                        'cream' => 'كريم',
-                                                        'ointment' => 'مرهم',
-                                                        'drops' => 'قطرة',
-                                                        'spray' => 'رذاذ',
-                                                        'inhaler' => 'بخاخ',
-                                                        'suppository' => 'تحاميل',
-                                                        'patch' => 'لصقة',
-                                                        'other' => 'أخرى',
-                                                    ];
-                                                    $label .= ' - ' . ($forms[$medication->dosage_form] ?? $medication->dosage_form);
-                                                }
-                                                return [$medication->id => $label];
-                                            });
-                                    })
-                                    ->columnSpan(2),
 
-                                TextInput::make('dosage')
-                                    ->label('الجرعة')
-                                    ->placeholder('مثال: حبة واحدة، ملعقة صغيرة، 5ml')
-                                    ->columnSpan(1),
 
-                                TextInput::make('frequency')
-                                    ->label('عدد المرات')
-                                    ->placeholder('مثال: 3 مرات يومياً، كل 8 ساعات')
-                                    ->columnSpan(1),
-
-                                TextInput::make('duration')
-                                    ->label('المدة')
-                                    ->placeholder('مثال: 7 أيام، أسبوعين، شهر')
-                                    ->columnSpan(1),
-
-                                TextInput::make('instructions')
-                                    ->label('تعليمات الاستخدام')
-                                    ->placeholder('مثال: قبل الأكل، بعد الأكل، مع الماء')
-                                    ->columnSpan(1),
-
-                                Textarea::make('notes')
-                                    ->label('ملاحظات إضافية')
-                                    ->placeholder('أي ملاحظات خاصة بهذا الدواء...')
-                                    ->rows(2)
-                                    ->columnSpanFull(),
-                            ])
-                            ->columns(2)
-                            ->reorderable(false)
-                            ->itemLabel(fn (array $state): ?string =>
-                                \App\Models\Medication::find($state['medication_id'])?->name_ar ?? 'دواء جديد'
-                            )
-                            ->addActionLabel('إضافة دواء')
-                            ->defaultItems(0)
-                            ->columnSpanFull()
-                            ->afterStateHydrated(function ($component, $state, $record) {
-                                if ($record) {
-                                    $record->load('medications');
-
-                                    if ($record->medications->count() > 0) {
-                                        $data = $record->medications->map(function ($medication) {
-                                            return [
-                                                'medication_id' => $medication->id,
-                                                'dosage' => $medication->pivot->dosage,
-                                                'frequency' => $medication->pivot->frequency,
-                                                'duration' => $medication->pivot->duration,
-                                                'notes' => $medication->pivot->notes,
-                                            ];
-                                        })->toArray();
-
-                                        $component->state($data);
-                                    }
-                                }
-                            }),
-                    ])
-                    ->collapsible(),
-
-                // ==================== 5. الأشعة المطلوبة ====================
+                // ==================== 4. الأشعة المطلوبة ====================
                 Section::make('الأشعة المطلوبة')
                     ->icon('heroicon-o-camera')
                     ->schema([
@@ -405,6 +460,44 @@ class TreatmentPlanTab
                                                 return [$imaging->id => $label];
                                             });
                                     })
+                                    ->createOptionForm([
+                                        TextInput::make('name_ar')
+                                            ->label('الاسم بالعربية')
+                                            ->required()
+                                            ->maxLength(255),
+
+                                        TextInput::make('name_en')
+                                            ->label('الاسم بالإنجليزية')
+                                            ->maxLength(255),
+
+                                        Select::make('type')
+                                            ->label('نوع الأشعة')
+                                            ->options([
+                                                'x-ray' => 'أشعة عادية',
+                                                'ct' => 'أشعة مقطعية (CT)',
+                                                'mri' => 'رنين مغناطيسي (MRI)',
+                                                'ultrasound' => 'إيكو/سونار',
+                                                'doppler' => 'دوبلر',
+                                                'mammogram' => 'ماموجرام',
+                                                'fluoroscopy' => 'فلوروسكوبي',
+                                                'other' => 'أخرى',
+                                            ])
+                                            ->required(),
+
+                                        TextInput::make('body_part')
+                                            ->label('الجزء المصور')
+                                            ->placeholder('مثال: البطن، الصدر، الرأس')
+                                            ->maxLength(255),
+
+                                        TextInput::make('abbreviation')
+                                            ->label('الاختصار')
+                                            ->maxLength(50),
+                                    ])
+                                    ->createOptionUsing(function (array $data) {
+                                        $data['is_active'] = true;
+                                        $data['usage_count'] = 0;
+                                        return \App\Models\ImagingStudy::create($data)->id;
+                                    })
                                     ->columnSpan(2),
 
                                 Textarea::make('notes')
@@ -415,7 +508,8 @@ class TreatmentPlanTab
                             ])
                             ->columns(2)
                             ->reorderable(false)
-                            ->itemLabel(fn (array $state): ?string =>
+                            ->itemLabel(
+                                fn(array $state): ?string =>
                                 \App\Models\ImagingStudy::find($state['imaging_study_id'])?->name_ar ?? 'أشعة جديدة'
                             )
                             ->addActionLabel('إضافة أشعة')
@@ -440,7 +534,7 @@ class TreatmentPlanTab
                     ])
                     ->collapsible(),
 
-                // ==================== 6. التنظير ====================
+                // ==================== 5. التنظير ====================
                 Section::make('التنظير المطلوب')
                     ->icon('heroicon-o-magnifying-glass-circle')
                     ->schema([
@@ -469,7 +563,7 @@ class TreatmentPlanTab
                     ->columns(4)
                     ->collapsible(),
 
-                // ==================== 7. الإحالة والاستشارات ====================
+                // ==================== 6. الإحالة والاستشارات ====================
                 Section::make('الإحالة والاستشارات')
                     ->icon('heroicon-o-users')
                     ->schema([
