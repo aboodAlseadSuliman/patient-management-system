@@ -199,10 +199,33 @@ class EditVisit extends EditRecord
 
                     if (isset($attachmentData['id']) && $attachmentData['id']) {
                         // تحديث مرفق موجود
-                        $visit->attachmentFiles()->where('id', $attachmentData['id'])->update([
-                            'attachment_type' => $attachmentData['attachment_type'],
-                            'notes' => $attachmentData['notes'] ?? null,
-                        ]);
+                        $existingAttachment = $visit->attachmentFiles()->find($attachmentData['id']);
+
+                        if ($existingAttachment) {
+                            // التحقق إذا تم تغيير الملف
+                            if ($existingAttachment->file_path !== $storedPath) {
+                                // حذف الملف القديم
+                                if (file_exists(public_path($existingAttachment->file_path))) {
+                                    unlink(public_path($existingAttachment->file_path));
+                                }
+
+                                // تحديث بمعلومات الملف الجديد
+                                $existingAttachment->update([
+                                    'attachment_type' => $attachmentData['attachment_type'],
+                                    'file_path' => $storedPath,
+                                    'original_filename' => basename($filePath),
+                                    'mime_type' => file_exists($fullPath) ? mime_content_type($fullPath) : null,
+                                    'file_size' => file_exists($fullPath) ? filesize($fullPath) : null,
+                                    'notes' => $attachmentData['notes'] ?? null,
+                                ]);
+                            } else {
+                                // تحديث فقط النوع والملاحظات (الملف لم يتغير)
+                                $existingAttachment->update([
+                                    'attachment_type' => $attachmentData['attachment_type'],
+                                    'notes' => $attachmentData['notes'] ?? null,
+                                ]);
+                            }
+                        }
                     } else {
                         // إنشاء مرفق جديد
                         $visit->attachmentFiles()->create([
