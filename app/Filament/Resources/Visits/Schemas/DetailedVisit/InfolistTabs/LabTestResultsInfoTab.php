@@ -85,7 +85,7 @@ class LabTestResultsInfoTab
                                         ->label('التغيير')
                                         ->placeholder('-')
                                         ->badge()
-                                        ->color(fn($record) => {
+                                        ->color(function ($record) {
                                             if (!$record->value_difference) return 'gray';
                                             if (str_contains($record->value_difference, '↑')) return 'warning';
                                             if (str_contains($record->value_difference, '↓')) return 'info';
