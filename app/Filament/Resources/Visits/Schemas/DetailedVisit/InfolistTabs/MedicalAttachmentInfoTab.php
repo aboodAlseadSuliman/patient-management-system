@@ -15,7 +15,7 @@ class MedicalAttachmentInfoTab
     {
         return Tab::make('المرفقات الطبية')
             ->icon('heroicon-o-document-text')
-            ->badge(fn ($record) => $record->attachmentFiles->count() > 0 ? $record->attachmentFiles->count() : null)
+            ->badge(fn($record) => $record->attachmentFiles->count() > 0 ? $record->attachmentFiles->count() : null)
             ->badgeColor('success')
             ->schema([
 
@@ -27,11 +27,11 @@ class MedicalAttachmentInfoTab
                         RepeatableEntry::make('attachmentFiles')
                             ->label('')
                             ->schema([
-                                Grid::make(3)
+                                Grid::make(5)
                                     ->schema([
                                         TextEntry::make('attachment_type')
                                             ->label('نوع المرفق')
-                                            ->formatStateUsing(fn ($state) => match($state) {
+                                            ->formatStateUsing(fn($state) => match ($state) {
                                                 'x-ray' => '📷 أشعة بسيطة (X-Ray)',
                                                 'ultrasound' => '🔊 إيكو بطني (Ultrasound)',
                                                 'ct-scan' => '💿 طبقي محوري (CT Scan)',
@@ -48,7 +48,8 @@ class MedicalAttachmentInfoTab
 
                                         TextEntry::make('file_path')
                                             ->label('الملف')
-                                            ->formatStateUsing(fn ($state, $record) =>
+                                            ->formatStateUsing(
+                                                fn($state, $record) =>
                                                 '<a href="' . asset('medical-attachments/' . $state) . '" target="_blank" class="text-primary-600 hover:underline flex items-center gap-2">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13l-3 3m0 0l-3-3m3 3V8m0 13a9 9 0 110-18 9 9 0 010 18z" />
@@ -65,19 +66,21 @@ class MedicalAttachmentInfoTab
                                             ->badge()
                                             ->color('gray')
                                             ->columnSpan(1),
+
+                                        TextEntry::make('notes')
+                                            ->label('📝 النتيجة')
+                                            ->markdown()
+                                            ->placeholder('لا توجد ملاحظات')
+                                            ->columnSpan(2),
                                     ]),
 
-                                TextEntry::make('notes')
-                                    ->label('📝 الملاحظات')
-                                    ->markdown()
-                                    ->placeholder('لا توجد ملاحظات')
-                                    ->columnSpanFull(),
+
                             ])
                             ->columns(1)
                             ->contained(false),
                     ])
                     ->collapsed(false)
-                    ->visible(fn ($record) => $record->attachmentFiles->count() > 0)
+                    ->visible(fn($record) => $record->attachmentFiles->count() > 0)
                     ->collapsible(),
 
                 // ==================== 1. الإحالة الطبية ====================
