@@ -49,7 +49,7 @@ class MedicalAttachmentInfoTab
                                         TextEntry::make('file_path')
                                             ->label('الملف')
                                             ->formatStateUsing(fn ($state, $record) =>
-                                                '<a href="' . asset($state) . '" target="_blank" class="text-primary-600 hover:underline flex items-center gap-2">
+                                                '<a href="' . asset('medical-attachments/' . $state) . '" target="_blank" class="text-primary-600 hover:underline flex items-center gap-2">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13l-3 3m0 0l-3-3m3 3V8m0 13a9 9 0 110-18 9 9 0 010 18z" />
                                                     </svg>
