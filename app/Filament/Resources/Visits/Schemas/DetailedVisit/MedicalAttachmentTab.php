@@ -64,7 +64,10 @@ class MedicalAttachmentTab
                                         return 'temp';
                                     })
                                     ->disk('medical_attachments')
+                                    ->visibility('public')
                                     ->preserveFilenames()
+                                    ->image()
+                                    ->imagePreviewHeight('250')
                                     ->acceptedFileTypes([
                                         'image/jpeg',
                                         'image/png',
@@ -75,6 +78,7 @@ class MedicalAttachmentTab
                                     ->maxSize(10240) // 10MB
                                     ->downloadable()
                                     ->openable()
+                                    ->previewable(true)
                                     ->columnSpan(1),
 
                                 Textarea::make('notes')
