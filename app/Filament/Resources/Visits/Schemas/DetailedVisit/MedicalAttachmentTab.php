@@ -49,6 +49,13 @@ class MedicalAttachmentTab
                                     ->native(false)
                                     ->columnSpan(1),
 
+                                TextInput::make('attachment_name')
+                                    ->label('اسم المرفق (اختياري)')
+                                    ->placeholder('مثال: أشعة الصدر، تقرير الإيكو...')
+                                    ->helperText('اسم وصفي للمرفق لسهولة التعرف عليه')
+                                    ->maxLength(255)
+                                    ->columnSpan(1),
+
                                 FileUpload::make('file_path')
                                     ->label('الملف')
                                     ->required()
@@ -94,14 +101,19 @@ class MedicalAttachmentTab
                                     ->helperText('سجل تفاصيل الفحص والنتائج والموجودات المرضية. يمكنك استخدام تنسيق نصي منظم.')
                                     ->columnSpanFull(),
                             ])
-                            ->columns(2)
+                            ->columns(3)
                             ->defaultItems(0)
                             ->addActionLabel('+ إضافة مرفق طبي')
                             ->collapsible()
-                            ->itemLabel(
-                                fn(array $state): ?string =>
-                                isset($state['attachment_type'])
-                                    ? match ($state['attachment_type']) {
+                            ->itemLabel(function(array $state): ?string {
+                                // إذا كان هناك اسم للمرفق، استخدمه
+                                if (isset($state['attachment_name']) && !empty($state['attachment_name'])) {
+                                    return $state['attachment_name'];
+                                }
+
+                                // وإلا، استخدم نوع المرفق
+                                if (isset($state['attachment_type'])) {
+                                    return match ($state['attachment_type']) {
                                         'x-ray' => 'أشعة بسيطة (X-Ray)',
                                         'ultrasound' => 'إيكو بطني (Ultrasound)',
                                         'ct-scan' => 'طبقي محوري (CT Scan)',
@@ -111,9 +123,11 @@ class MedicalAttachmentTab
                                         'document' => 'مستند طبي',
                                         'other' => 'أخرى',
                                         default => 'مرفق طبي'
-                                    }
-                                    : 'مرفق طبي'
-                            )
+                                    };
+                                }
+
+                                return 'مرفق طبي';
+                            })
                             ->columnSpanFull(),
                     ])
                     ->collapsible()

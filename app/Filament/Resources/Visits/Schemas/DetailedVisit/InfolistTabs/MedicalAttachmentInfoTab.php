@@ -33,18 +33,27 @@ class MedicalAttachmentInfoTab
                                     ->get();
                             })
                             ->schema([
-                                Grid::make(5)
+                                Grid::make(6)
                                     ->schema([
+                                        TextEntry::make('attachment_name')
+                                            ->label('اسم المرفق')
+                                            ->default(fn($record) => $record->attachment_type_name)
+                                            ->badge()
+                                            ->color('success')
+                                            ->icon('heroicon-o-document-text')
+                                            ->weight('bold')
+                                            ->columnSpan(1),
+
                                         TextEntry::make('attachment_type')
-                                            ->label('نوع المرفق')
+                                            ->label('النوع')
                                             ->formatStateUsing(fn($state) => match ($state) {
-                                                'x-ray' => '📷 أشعة بسيطة (X-Ray)',
-                                                'ultrasound' => '🔊 إيكو بطني (Ultrasound)',
-                                                'ct-scan' => '💿 طبقي محوري (CT Scan)',
-                                                'mri' => '🧲 رنين مغناطيسي (MRI)',
+                                                'x-ray' => '📷 أشعة',
+                                                'ultrasound' => '🔊 إيكو',
+                                                'ct-scan' => '💿 CT',
+                                                'mri' => '🧲 MRI',
                                                 'endoscopy' => '🔬 تنظير',
-                                                'lab-report' => '📋 تقرير تحاليل',
-                                                'document' => '📄 مستند طبي',
+                                                'lab-report' => '📋 تحليل',
+                                                'document' => '📄 مستند',
                                                 'other' => '📎 أخرى',
                                                 default => $state,
                                             })
@@ -54,15 +63,19 @@ class MedicalAttachmentInfoTab
 
                                         TextEntry::make('file_path')
                                             ->label('الملف')
-                                            ->formatStateUsing(
-                                                fn($state, $record) =>
-                                                '<a href="' . asset('medical-attachments/' . $state) . '" target="_blank" class="text-primary-600 hover:underline flex items-center gap-2">
+                                            ->formatStateUsing(function($state, $record) {
+                                                // تشفير المسار لدعم الأسماء العربية
+                                                $pathParts = explode('/', $state);
+                                                $encodedParts = array_map('rawurlencode', $pathParts);
+                                                $encodedPath = implode('/', $encodedParts);
+
+                                                return '<a href="' . asset('medical-attachments/' . $encodedPath) . '" target="_blank" class="text-primary-600 hover:underline flex items-center gap-2">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13l-3 3m0 0l-3-3m3 3V8m0 13a9 9 0 110-18 9 9 0 010 18z" />
                                                     </svg>
-                                                    تحميل - ' . $record->original_filename . ' (' . $record->formatted_file_size . ')
-                                                </a>'
-                                            )
+                                                    تحميل - ' . htmlspecialchars($record->original_filename) . ' (' . $record->formatted_file_size . ')
+                                                </a>';
+                                            })
                                             ->html()
                                             ->columnSpan(1),
 
@@ -142,16 +155,23 @@ class MedicalAttachmentInfoTab
 
                                         TextEntry::make('attachmentFile.file_path')
                                             ->label('الصورة')
-                                            ->formatStateUsing(
-                                                fn($state, $record) => $state
-                                                    ? '<a href="' . asset('medical-attachments/' . $state) . '" target="_blank" class="text-primary-600 hover:underline flex items-center gap-2">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                        </svg>
-                                                        عرض الصورة
-                                                    </a>'
-                                                    : '<span class="text-gray-400">لا توجد صورة</span>'
-                                            )
+                                            ->formatStateUsing(function($state, $record) {
+                                                if (!$state) {
+                                                    return '<span class="text-gray-400">لا توجد صورة</span>';
+                                                }
+
+                                                // تشفير المسار لدعم الأسماء العربية
+                                                $pathParts = explode('/', $state);
+                                                $encodedParts = array_map('rawurlencode', $pathParts);
+                                                $encodedPath = implode('/', $encodedParts);
+
+                                                return '<a href="' . asset('medical-attachments/' . $encodedPath) . '" target="_blank" class="text-primary-600 hover:underline flex items-center gap-2">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                    عرض الصورة
+                                                </a>';
+                                            })
                                             ->html()
                                             ->columnSpan(1),
                                     ]),

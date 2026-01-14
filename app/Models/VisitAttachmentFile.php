@@ -11,6 +11,7 @@ class VisitAttachmentFile extends Model
     protected $fillable = [
         'visit_id',
         'attachment_type',
+        'attachment_name',
         'file_path',
         'original_filename',
         'mime_type',

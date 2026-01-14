@@ -86,6 +86,7 @@ class EditVisit extends EditRecord
                 return [
                     'id' => $file->id,
                     'attachment_type' => $file->attachment_type,
+                    'attachment_name' => $file->attachment_name,
                     'file_path' => $filePath,
                     'notes' => $file->notes,
                 ];
@@ -222,6 +223,7 @@ class EditVisit extends EditRecord
                                 // تحديث بمعلومات الملف الجديد
                                 $existingAttachment->update([
                                     'attachment_type' => $attachmentData['attachment_type'],
+                                    'attachment_name' => $attachmentData['attachment_name'] ?? null,
                                     'file_path' => $filePath, // حفظ المسار النسبي فقط
                                     'original_filename' => basename($filePath),
                                     'mime_type' => file_exists($fullPath) ? mime_content_type($fullPath) : null,
@@ -229,9 +231,10 @@ class EditVisit extends EditRecord
                                     'notes' => $attachmentData['notes'] ?? null,
                                 ]);
                             } else {
-                                // تحديث فقط النوع والملاحظات (الملف لم يتغير)
+                                // تحديث فقط النوع والاسم والملاحظات (الملف لم يتغير)
                                 $existingAttachment->update([
                                     'attachment_type' => $attachmentData['attachment_type'],
+                                    'attachment_name' => $attachmentData['attachment_name'] ?? null,
                                     'notes' => $attachmentData['notes'] ?? null,
                                 ]);
                             }
@@ -240,6 +243,7 @@ class EditVisit extends EditRecord
                         // إنشاء مرفق جديد
                         $visit->attachmentFiles()->create([
                             'attachment_type' => $attachmentData['attachment_type'],
+                            'attachment_name' => $attachmentData['attachment_name'] ?? null,
                             'file_path' => $filePath, // حفظ المسار النسبي فقط
                             'original_filename' => basename($filePath),
                             'mime_type' => file_exists($fullPath) ? mime_content_type($fullPath) : null,
