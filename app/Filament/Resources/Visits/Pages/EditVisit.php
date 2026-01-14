@@ -76,9 +76,10 @@ class EditVisit extends EditRecord
             $data['followup'] = $visit->followup->toArray();
         }
 
-        // تحميل بيانات ملفات المرفقات الطبية المرفوعة
-        if ($visit->attachmentFiles->isNotEmpty()) {
-            $data['attachment_files_data'] = $visit->attachmentFiles->map(function ($file) {
+        // تحميل بيانات ملفات المرفقات الطبية المرفوعة (استبعاد صور التحاليل)
+        $generalAttachments = $visit->attachmentFiles()->whereDoesntHave('labTestResults')->get();
+        if ($generalAttachments->isNotEmpty()) {
+            $data['attachment_files_data'] = $generalAttachments->map(function ($file) {
                 // إزالة البادئة medical-attachments/ لأن الـ disk يضيفها تلقائياً
                 $filePath = str_replace('medical-attachments/', '', $file->file_path);
 
