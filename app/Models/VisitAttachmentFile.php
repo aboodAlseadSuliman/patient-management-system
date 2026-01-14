@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VisitAttachmentFile extends Model
 {
@@ -38,6 +39,14 @@ class VisitAttachmentFile extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    /**
+     * العلاقة مع نتائج التحاليل (العلاقة العكسية)
+     */
+    public function labTestResults(): HasMany
+    {
+        return $this->hasMany(LabTestResult::class, 'attachment_file_id');
     }
 
     /**

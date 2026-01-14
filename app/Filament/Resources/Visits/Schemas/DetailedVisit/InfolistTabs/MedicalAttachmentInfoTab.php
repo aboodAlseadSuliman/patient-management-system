@@ -15,7 +15,7 @@ class MedicalAttachmentInfoTab
     {
         return Tab::make('المرفقات والتحاليل')
             ->icon('heroicon-o-document-text')
-            ->badge(fn($record) => $record->attachmentFiles->count() + $record->labTestResults->count() > 0 ? $record->attachmentFiles->count() + $record->labTestResults->count() : null)
+            ->badge(fn($record) => $record->attachmentFiles()->whereDoesntHave('labTestResults')->count() + $record->labTestResults->count() > 0 ? $record->attachmentFiles()->whereDoesntHave('labTestResults')->count() + $record->labTestResults->count() : null)
             ->badgeColor('success')
             ->schema([
 
@@ -26,6 +26,12 @@ class MedicalAttachmentInfoTab
                     ->schema([
                         RepeatableEntry::make('attachmentFiles')
                             ->label('')
+                            ->getStateUsing(function ($record) {
+                                // عرض المرفقات التي ليست مرتبطة بنتائج التحاليل فقط
+                                return $record->attachmentFiles()
+                                    ->whereDoesntHave('labTestResults')
+                                    ->get();
+                            })
                             ->schema([
                                 Grid::make(5)
                                     ->schema([
@@ -80,7 +86,7 @@ class MedicalAttachmentInfoTab
                             ->contained(false),
                     ])
                     ->collapsed(false)
-                    ->visible(fn($record) => $record->attachmentFiles->count() > 0)
+                    ->visible(fn($record) => $record->attachmentFiles()->whereDoesntHave('labTestResults')->count() > 0)
                     ->collapsible(),
 
                 // ==================== نتائج التحاليل المخبرية ====================
