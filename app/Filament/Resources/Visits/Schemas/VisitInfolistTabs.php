@@ -7,7 +7,6 @@ use App\Filament\Resources\Visits\Schemas\DetailedVisit\InfolistTabs\TimelineInf
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\InfolistTabs\MedicalAttachmentInfoTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\InfolistTabs\ClinicalExaminationInfoTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\InfolistTabs\TreatmentPlanInfoTab;
-use App\Filament\Resources\Visits\Schemas\DetailedVisit\InfolistTabs\LabTestResultsInfoTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\InfolistTabs\FollowupInfoTab;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -121,7 +120,6 @@ class VisitInfolistTabs
                         MedicalAttachmentInfoTab::make(),
                         ClinicalExaminationInfoTab::make(),
                         TreatmentPlanInfoTab::make(),
-                        LabTestResultsInfoTab::make(),
                         FollowupInfoTab::make(),
 
                         // ==================== التاب الثامن: معلومات النظام ====================

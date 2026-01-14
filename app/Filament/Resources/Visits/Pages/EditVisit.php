@@ -40,6 +40,7 @@ class EditVisit extends EditRecord
             'preliminaryDiagnoses',
             'attachmentFiles',
             'labTestResults.labTest',
+            'labTestResults.attachmentFile',
         ]);
     }
 
@@ -93,9 +94,17 @@ class EditVisit extends EditRecord
         // تحميل بيانات نتائج التحاليل
         if ($visit->labTestResults->isNotEmpty()) {
             $data['lab_test_results_data'] = $visit->labTestResults->map(function ($result) {
+                $labImagePath = null;
+                if ($result->attachmentFile) {
+                    // إزالة البادئة medical-attachments/ لأن الـ disk يضيفها تلقائياً
+                    $labImagePath = str_replace('medical-attachments/', '', $result->attachmentFile->file_path);
+                }
+
                 return [
                     'id' => $result->id,
                     'lab_test_id' => $result->lab_test_id,
+                    'attachment_file_id' => $result->attachment_file_id,
+                    'lab_image_path' => $labImagePath,
                     'test_date' => $result->test_date,
                     'result_value' => $result->result_value,
                     'reference_range' => $result->reference_range,
@@ -392,12 +401,55 @@ class EditVisit extends EditRecord
             // إضافة أو تحديث النتائج
             foreach ($data['lab_test_results_data'] as $resultData) {
                 if (isset($resultData['lab_test_id']) && isset($resultData['result_value'])) {
+                    // معالجة صورة التحليل (رفع أو تحديث)
+                    $attachmentFileId = $resultData['attachment_file_id'] ?? null;
+
+                    if (isset($resultData['lab_image_path']) && $resultData['lab_image_path']) {
+                        $filePath = $resultData['lab_image_path'];
+
+                        // تحقق من تغيير الصورة
+                        $imageChanged = false;
+                        if ($attachmentFileId) {
+                            $existingAttachment = $visit->attachmentFiles()->find($attachmentFileId);
+                            if ($existingAttachment && $existingAttachment->file_path !== $filePath) {
+                                $imageChanged = true;
+                            }
+                        } else {
+                            $imageChanged = true; // صورة جديدة
+                        }
+
+                        if ($imageChanged) {
+                            $fullPath = public_path('medical-attachments/' . $filePath);
+
+                            // إذا كانت هناك صورة قديمة، احذفها
+                            if ($attachmentFileId) {
+                                $oldAttachment = $visit->attachmentFiles()->find($attachmentFileId);
+                                if ($oldAttachment) {
+                                    $oldAttachment->delete();
+                                }
+                            }
+
+                            // رفع الصورة الجديدة
+                            $attachmentFile = $visit->attachmentFiles()->create([
+                                'attachment_type' => 'lab-report',
+                                'file_path' => $filePath,
+                                'original_filename' => basename($filePath),
+                                'mime_type' => file_exists($fullPath) ? mime_content_type($fullPath) : null,
+                                'file_size' => file_exists($fullPath) ? filesize($fullPath) : null,
+                                'notes' => 'صورة تحليل: ' . ($resultData['notes'] ?? ''),
+                                'uploaded_by' => auth()->id(),
+                            ]);
+                            $attachmentFileId = $attachmentFile->id;
+                        }
+                    }
+
                     if (isset($resultData['id']) && $resultData['id']) {
                         // تحديث نتيجة موجودة
                         $existingResult = $visit->labTestResults()->find($resultData['id']);
                         if ($existingResult) {
                             $existingResult->update([
                                 'lab_test_id' => $resultData['lab_test_id'],
+                                'attachment_file_id' => $attachmentFileId,
                                 'test_date' => $resultData['test_date'] ?? now(),
                                 'result_value' => $resultData['result_value'],
                                 'reference_range' => $resultData['reference_range'] ?? null,
@@ -412,6 +464,7 @@ class EditVisit extends EditRecord
                         // إنشاء نتيجة جديدة
                         $visit->labTestResults()->create([
                             'lab_test_id' => $resultData['lab_test_id'],
+                            'attachment_file_id' => $attachmentFileId,
                             'test_date' => $resultData['test_date'] ?? now(),
                             'result_value' => $resultData['result_value'],
                             'reference_range' => $resultData['reference_range'] ?? null,

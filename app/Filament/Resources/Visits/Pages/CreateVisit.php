@@ -231,8 +231,27 @@ class CreateVisit extends CreateRecord
         if (isset($data['lab_test_results_data']) && !empty($data['lab_test_results_data'])) {
             foreach ($data['lab_test_results_data'] as $resultData) {
                 if (isset($resultData['lab_test_id']) && isset($resultData['result_value'])) {
+                    // رفع صورة التحليل إذا كانت موجودة
+                    $attachmentFileId = null;
+                    if (isset($resultData['lab_image_path']) && $resultData['lab_image_path']) {
+                        $filePath = $resultData['lab_image_path'];
+                        $fullPath = public_path('medical-attachments/' . $filePath);
+
+                        $attachmentFile = $visit->attachmentFiles()->create([
+                            'attachment_type' => 'lab-report',
+                            'file_path' => $filePath,
+                            'original_filename' => basename($filePath),
+                            'mime_type' => file_exists($fullPath) ? mime_content_type($fullPath) : null,
+                            'file_size' => file_exists($fullPath) ? filesize($fullPath) : null,
+                            'notes' => 'صورة تحليل: ' . ($resultData['notes'] ?? ''),
+                            'uploaded_by' => auth()->id(),
+                        ]);
+                        $attachmentFileId = $attachmentFile->id;
+                    }
+
                     $visit->labTestResults()->create([
                         'lab_test_id' => $resultData['lab_test_id'],
+                        'attachment_file_id' => $attachmentFileId,
                         'test_date' => $resultData['test_date'] ?? now(),
                         'result_value' => $resultData['result_value'],
                         'reference_range' => $resultData['reference_range'] ?? null,

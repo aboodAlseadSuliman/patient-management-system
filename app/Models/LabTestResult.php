@@ -13,6 +13,7 @@ class LabTestResult extends Model
     protected $fillable = [
         'visit_id',
         'lab_test_id',
+        'attachment_file_id',
         'test_date',
         'result_value',
         'reference_range',
@@ -43,6 +44,14 @@ class LabTestResult extends Model
     public function labTest(): BelongsTo
     {
         return $this->belongsTo(LabTest::class);
+    }
+
+    /**
+     * العلاقة مع ملف المرفق (اختياري)
+     */
+    public function attachmentFile(): BelongsTo
+    {
+        return $this->belongsTo(VisitAttachmentFile::class, 'attachment_file_id');
     }
 
     /**
