@@ -195,6 +195,23 @@ class FollowupInfoTab
                             ->columnSpanFull(),
                     ])
                     ->collapsible(),
+
+                // ==================== 6. حالة إنهاء الزيارة ====================
+                Section::make('حالة إنهاء الزيارة')
+                    ->icon('heroicon-o-check-circle')
+                    ->description('هل تم إنهاء الزيارة بشكل كامل؟')
+                    ->schema([
+                        IconEntry::make('is_completed')
+                            ->label('الزيارة مكتملة')
+                            ->boolean()
+                            ->trueIcon('heroicon-o-check-circle')
+                            ->falseIcon('heroicon-o-x-circle')
+                            ->trueColor('success')
+                            ->falseColor('warning')
+                            ->size(IconEntry\IconEntrySize::Large)
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible(),
             ]);
     }
 }

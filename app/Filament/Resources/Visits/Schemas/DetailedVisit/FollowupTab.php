@@ -6,6 +6,7 @@ use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs\Tab;
 
@@ -170,6 +171,21 @@ class FollowupTab
                                 'death' => 'وفاة (Death)',
                             ])
                             ->placeholder('اختر الحالة النهائية للمريض')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible(),
+
+                // ==================== 6. حالة إنهاء الزيارة ====================
+                Section::make('حالة إنهاء الزيارة')
+                    ->icon('heroicon-o-check-circle')
+                    ->description('هل تم إنهاء الزيارة بشكل كامل؟')
+                    ->schema([
+                        Toggle::make('is_completed')
+                            ->label('الزيارة مكتملة')
+                            ->helperText('قم بتفعيل هذا الخيار عندما تكتمل جميع بيانات الزيارة')
+                            ->inline(false)
+                            ->onColor('success')
+                            ->offColor('warning')
                             ->columnSpanFull(),
                     ])
                     ->collapsible(),
