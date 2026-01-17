@@ -11,11 +11,6 @@ class PatientExporter extends Exporter
 {
     protected static ?string $model = Patient::class;
 
-    public static function getJobConnection(): ?string
-    {
-        return 'database';
-    }
-
     public function getFileDisk(): string
     {
         return 'public';
