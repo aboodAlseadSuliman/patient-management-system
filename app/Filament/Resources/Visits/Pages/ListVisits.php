@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Visits\Pages;
 use App\Filament\Resources\Visits\VisitResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Database\Eloquent\Builder;
 
 class ListVisits extends ListRecords
 {
@@ -15,5 +16,20 @@ class ListVisits extends ListRecords
         return [
             CreateAction::make(),
         ];
+    }
+
+    /**
+     * تحميل العلاقات المطلوبة مع الجدول لتحسين الأداء
+     */
+    protected function getTableQuery(): Builder
+    {
+        return parent::getTableQuery()
+            ->with([
+                'patient',
+                'complaintSymptom',
+                'followup',
+                'creator',
+                'updater',
+            ]);
     }
 }

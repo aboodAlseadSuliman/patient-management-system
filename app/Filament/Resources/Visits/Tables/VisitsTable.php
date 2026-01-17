@@ -78,26 +78,42 @@ class VisitsTable
                         default => 'gray',
                     }),
 
-                // الشكوى الرئيسية
-                TextColumn::make('chief_complaint')
+                // الشكوى الرئيسية (من جدول visit_complaint_symptoms)
+                TextColumn::make('complaintSymptom.chief_complaint')
                     ->label('الشكوى الرئيسية')
                     ->limit(50)
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->placeholder('-'),
 
-                // التشخيص
-                TextColumn::make('diagnosis')
+                // التشخيص النهائي (من جدول visit_followups)
+                TextColumn::make('followup.final_diagnosis')
                     ->label('التشخيص')
                     ->limit(50)
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->placeholder('-')
+                    ->formatStateUsing(function ($state) {
+                        if (empty($state)) return '-';
 
-                // تاريخ الزيارة القادمة
-                TextColumn::make('next_visit_date')
+                        // إذا كان JSON (تشخيصات متعددة)
+                        if (is_string($state) && str_starts_with($state, '[')) {
+                            $diagnoses = json_decode($state, true);
+                            if (is_array($diagnoses) && !empty($diagnoses)) {
+                                return implode('، ', $diagnoses);
+                            }
+                        }
+
+                        return $state;
+                    }),
+
+                // تاريخ الزيارة القادمة (من جدول visit_followups)
+                TextColumn::make('followup.next_visit_date')
                     ->label('الزيارة القادمة')
                     ->date('Y-m-d')
                     ->sortable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->placeholder('-'),
 
                 // حالة الاكتمال
                 IconColumn::make('is_completed')
