@@ -156,6 +156,15 @@ class FollowupInfoTab
                             })
                             ->placeholder('غير محدد')
                             ->columnSpan(1),
+
+                        TextEntry::make('followup.next_visit_date')
+                            ->label('تاريخ الزيارة القادمة المحدد')
+                            ->date('d/m/Y')
+                            ->badge()
+                            ->color('success')
+                            ->icon('heroicon-o-calendar')
+                            ->placeholder('غير محدد')
+                            ->columnSpan(1),
                     ])
                     ->columns(2)
                     ->collapsible(),

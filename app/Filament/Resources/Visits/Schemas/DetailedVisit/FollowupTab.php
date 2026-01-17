@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Visits\Schemas\DetailedVisit;
 
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Section;
@@ -140,6 +141,15 @@ class FollowupTab
                                 '1_year' => 'سنة',
                             ])
                             ->placeholder('اختر فترة المتابعة')
+                            ->visible(fn ($get) => $get('followup.followup_required'))
+                            ->columnSpan(1),
+
+                        DatePicker::make('followup.next_visit_date')
+                            ->label('تاريخ الزيارة القادمة (محدد)')
+                            ->placeholder('اختر تاريخاً محدداً (اختياري)')
+                            ->helperText('يمكنك تحديد تاريخ محدد للزيارة القادمة')
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
                             ->visible(fn ($get) => $get('followup.followup_required'))
                             ->columnSpan(1),
                     ])
