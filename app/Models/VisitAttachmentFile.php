@@ -10,6 +10,7 @@ class VisitAttachmentFile extends Model
 {
     protected $fillable = [
         'visit_id',
+        'attachment_type_id',
         'attachment_type',
         'attachment_name',
         'file_path',
@@ -40,6 +41,14 @@ class VisitAttachmentFile extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    /**
+     * العلاقة مع نوع المرفق
+     */
+    public function attachmentType(): BelongsTo
+    {
+        return $this->belongsTo(AttachmentType::class);
     }
 
     /**
@@ -84,12 +93,29 @@ class VisitAttachmentFile extends Model
      */
     public function getAttachmentTypeNameAttribute(): string
     {
+        // إذا كان هناك علاقة مع جدول attachment_types، استخدمها
+        if ($this->attachmentType) {
+            return $this->attachmentType->full_name;
+        }
+
+        // للتوافق مع البيانات القديمة
         return match($this->attachment_type) {
+            'medical-referral' => 'إحالة طبية',
             'x-ray' => 'أشعة بسيطة (X-Ray)',
             'ultrasound' => 'إيكو بطني (Ultrasound)',
             'ct-scan' => 'طبقي محوري (CT Scan)',
             'mri' => 'رنين مغناطيسي (MRI)',
-            'endoscopy' => 'تنظير',
+            'upper-endoscopy' => 'تنظير علوي',
+            'colonoscopy' => 'تنظير سفلي (Colonoscopy)',
+            'eus' => 'تنظير بالأمواج فوق الصوتية (EUS)',
+            'ercp' => 'تنظير القنوات الصفراوية (ERCP)',
+            'pathology-esophagus' => 'تشريح مرضي - مريء',
+            'pathology-stomach' => 'تشريح مرضي - معدة',
+            'pathology-duodenum' => 'تشريح مرضي - اثني عشري',
+            'pathology-ileum' => 'تشريح مرضي - دقاق',
+            'pathology-colon' => 'تشريح مرضي - كولون',
+            'pathology-liver' => 'تشريح مرضي - كبد',
+            'pathology-pancreas' => 'تشريح مرضي - بنكرياس',
             'lab-report' => 'تقرير تحاليل',
             'document' => 'مستند طبي',
             'other' => 'أخرى',

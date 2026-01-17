@@ -87,7 +87,8 @@ class CreateVisit extends CreateRecord
                     $fullPath = public_path('medical-attachments/' . $filePath);
 
                     $visit->attachmentFiles()->create([
-                        'attachment_type' => $attachmentData['attachment_type'],
+                        'attachment_type_id' => $attachmentData['attachment_type_id'] ?? null,
+                        'attachment_type' => $attachmentData['attachment_type'] ?? null, // للتوافق مع البيانات القديمة
                         'attachment_name' => $attachmentData['attachment_name'] ?? null,
                         'file_path' => $filePath, // حفظ المسار النسبي فقط (disk يضيف البادئة تلقائياً)
                         'original_filename' => basename($filePath),
@@ -203,27 +204,24 @@ class CreateVisit extends CreateRecord
 
         // ==================== حفظ الأشعة المطلوبة ====================
         if (isset($data['imagingStudiesData']) && !empty($data['imagingStudiesData'])) {
-            \Log::info('CreateVisit - Starting imaging studies sync');
-            $syncData = [];
+            \Log::info('CreateVisit - Starting imaging studies save');
 
             foreach ($data['imagingStudiesData'] as $imagingData) {
                 \Log::info('CreateVisit - Processing imaging study:', ['imagingData' => $imagingData]);
-                if (isset($imagingData['imaging_study_id'])) {
-                    $syncData[$imagingData['imaging_study_id']] = [
+                if (isset($imagingData['attachment_type_id'])) {
+                    \DB::table('visit_imaging_studies')->insert([
+                        'visit_id' => $visit->id,
+                        'attachment_type_id' => $imagingData['attachment_type_id'],
                         'notes' => $imagingData['notes'] ?? null,
                         'findings' => null,
                         'impression' => null,
                         'study_date' => null,
-                    ];
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
                 }
             }
-            \Log::info('CreateVisit - Imaging studies sync data prepared:', ['syncData' => $syncData]);
-            $visit->imagingStudies()->sync($syncData);
-            \Log::info('CreateVisit - Imaging studies sync completed');
-
-            // التحقق من الحفظ
-            $savedCount = $visit->imagingStudies()->count();
-            \Log::info('CreateVisit - Imaging studies saved count:', ['count' => $savedCount]);
+            \Log::info('CreateVisit - Imaging studies save completed');
         } else {
             \Log::warning('CreateVisit - imagingStudiesData is empty or not set');
         }
@@ -238,7 +236,13 @@ class CreateVisit extends CreateRecord
                         $filePath = $resultData['lab_image_path'];
                         $fullPath = public_path('medical-attachments/' . $filePath);
 
+                        // الحصول على attachment_type_id لنوع "تقرير تحاليل"
+                        $labReportType = \App\Models\AttachmentType::where('name_ar', 'تقرير تحاليل')
+                            ->orWhere('name_en', 'Lab Report')
+                            ->first();
+
                         $attachmentFile = $visit->attachmentFiles()->create([
+                            'attachment_type_id' => $labReportType ? $labReportType->id : null,
                             'attachment_type' => 'lab-report',
                             'file_path' => $filePath,
                             'original_filename' => basename($filePath),
@@ -263,6 +267,23 @@ class CreateVisit extends CreateRecord
                         'notes' => $resultData['notes'] ?? null,
                     ]);
                 }
+            }
+        }
+
+        // ==================== حفظ طلبات التشريح المرضي ====================
+        if (isset($data['pathologyRequestsData']) && !empty($data['pathologyRequestsData'])) {
+            foreach ($data['pathologyRequestsData'] as $pathologyData) {
+                $visit->pathologyRequests()->create([
+                    'patient_id' => $visit->patient_id,
+                    'pathology_type' => $pathologyData['pathology_type'],
+                    'description' => $pathologyData['description'] ?? null,
+                    'clinical_notes' => $pathologyData['clinical_notes'] ?? null,
+                    'request_date' => $pathologyData['request_date'] ?? now(),
+                    'expected_result_date' => $pathologyData['expected_result_date'] ?? null,
+                    'actual_result_date' => $pathologyData['actual_result_date'] ?? null,
+                    'status' => $pathologyData['status'] ?? 'pending',
+                    'result' => $pathologyData['result'] ?? null,
+                ]);
             }
         }
     }

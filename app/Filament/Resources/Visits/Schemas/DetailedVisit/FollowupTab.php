@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Visits\Schemas\DetailedVisit;
 
 use Filament\Forms\Components\Checkbox;
-use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Section;
@@ -24,7 +23,8 @@ class FollowupTab
                     ->icon('heroicon-o-clipboard-document-list')
                     ->description('التشخيصات المحتملة التي تحتاج إلى دراسة ومتابعة')
                     ->schema([
-                        CheckboxList::make('preliminaryDiagnoses')
+                        Select::make('preliminaryDiagnoses')
+                            ->label('اختر التشخيصات المبدئية')
                             ->relationship('preliminaryDiagnoses', 'name_ar')
                             ->options(function () {
                                 return \App\Models\Diagnosis::where('is_active', true)
@@ -36,22 +36,18 @@ class FollowupTab
                                         if ($diagnosis->name_en) {
                                             $label .= " ({$diagnosis->name_en})";
                                         }
+                                        if ($diagnosis->category) {
+                                            $label .= " - {$diagnosis->category}";
+                                        }
                                         return [$diagnosis->id => $label];
                                     });
                             })
-                            ->descriptions(function () {
-                                return \App\Models\Diagnosis::where('is_active', true)
-                                    ->orderBy('category')
-                                    ->orderBy('name_ar')
-                                    ->get()
-                                    ->mapWithKeys(function ($diagnosis) {
-                                        return [$diagnosis->id => $diagnosis->category ?? ''];
-                                    });
-                            })
+                            ->multiple()
                             ->searchable()
-                            ->bulkToggleable()
-                            ->gridDirection('row')
-                            ->columns(3)
+                            ->preload()
+                            ->native(false)
+                            ->placeholder('ابحث واختر التشخيصات المحتملة...')
+                            ->helperText('يمكنك اختيار أكثر من تشخيص')
                             ->columnSpanFull(),
                     ])
                     ->collapsible()
@@ -62,11 +58,30 @@ class FollowupTab
                     ->icon('heroicon-o-clipboard-document-check')
                     ->description('التشخيص المؤكد بعد الفحوصات والمتابعة')
                     ->schema([
-                        Textarea::make('followup.final_diagnosis')
-                            ->label('التشخيص النهائي')
-                            ->rows(4)
-                            ->placeholder('التشخيص المؤكد بناءً على الفحص السريري والفحوصات...')
-                            ->helperText('اكتب التشخيص النهائي المؤكد هنا')
+                        Select::make('followup.final_diagnosis')
+                            ->label('اختر التشخيصات النهائية')
+                            ->options(function () {
+                                return \App\Models\Diagnosis::where('is_active', true)
+                                    ->orderBy('category')
+                                    ->orderBy('name_ar')
+                                    ->get()
+                                    ->mapWithKeys(function ($diagnosis) {
+                                        $label = $diagnosis->name_ar;
+                                        if ($diagnosis->name_en) {
+                                            $label .= " ({$diagnosis->name_en})";
+                                        }
+                                        if ($diagnosis->category) {
+                                            $label .= " - {$diagnosis->category}";
+                                        }
+                                        return [$diagnosis->name_ar => $label];
+                                    });
+                            })
+                            ->multiple()
+                            ->searchable()
+                            ->preload()
+                            ->native(false)
+                            ->placeholder('ابحث واختر التشخيصات المؤكدة...')
+                            ->helperText('يمكنك اختيار أكثر من تشخيص نهائي')
                             ->columnSpanFull(),
                     ])
                     ->collapsible(),

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Visits\Schemas\DetailedVisit;
 
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -427,37 +428,18 @@ class TreatmentPlanTab
                         Repeater::make('imagingStudiesData')
                             ->label('الأشعة')
                             ->schema([
-                                Select::make('imaging_study_id')
+                                Select::make('attachment_type_id')
                                     ->label('نوع الأشعة')
                                     ->searchable()
                                     ->preload()
                                     ->required()
                                     ->options(function () {
-                                        return \App\Models\ImagingStudy::where('is_active', true)
-                                            ->orderBy('type')
-                                            ->orderBy('name_ar')
+                                        return \App\Models\AttachmentType::where('is_active', true)
+                                            ->where('category', 'imaging')
+                                            ->ordered()
                                             ->get()
-                                            ->mapWithKeys(function ($imaging) {
-                                                $label = $imaging->name_ar;
-
-                                                // إضافة نوع الأشعة
-                                                $types = [
-                                                    'x-ray' => 'أشعة عادية',
-                                                    'ct' => 'أشعة مقطعية',
-                                                    'mri' => 'رنين مغناطيسي',
-                                                    'ultrasound' => 'إيكو/سونار',
-                                                    'doppler' => 'دوبلر',
-                                                    'other' => 'أخرى',
-                                                ];
-                                                $label = ($types[$imaging->type] ?? $imaging->type) . ' - ' . $label;
-
-                                                if ($imaging->body_part) {
-                                                    $label .= " ({$imaging->body_part})";
-                                                }
-                                                if ($imaging->abbreviation) {
-                                                    $label .= " - {$imaging->abbreviation}";
-                                                }
-                                                return [$imaging->id => $label];
+                                            ->mapWithKeys(function ($type) {
+                                                return [$type->id => $type->full_name];
                                             });
                                     })
                                     ->createOptionForm([
@@ -470,33 +452,18 @@ class TreatmentPlanTab
                                             ->label('الاسم بالإنجليزية')
                                             ->maxLength(255),
 
-                                        Select::make('type')
-                                            ->label('نوع الأشعة')
-                                            ->options([
-                                                'x-ray' => 'أشعة عادية',
-                                                'ct' => 'أشعة مقطعية (CT)',
-                                                'mri' => 'رنين مغناطيسي (MRI)',
-                                                'ultrasound' => 'إيكو/سونار',
-                                                'doppler' => 'دوبلر',
-                                                'mammogram' => 'ماموجرام',
-                                                'fluoroscopy' => 'فلوروسكوبي',
-                                                'other' => 'أخرى',
-                                            ])
-                                            ->required(),
-
-                                        TextInput::make('body_part')
-                                            ->label('الجزء المصور')
-                                            ->placeholder('مثال: البطن، الصدر، الرأس')
-                                            ->maxLength(255),
-
-                                        TextInput::make('abbreviation')
-                                            ->label('الاختصار')
-                                            ->maxLength(50),
+                                        TextInput::make('icon')
+                                            ->label('الأيقونة')
+                                            ->default('📷')
+                                            ->required()
+                                            ->maxLength(10),
                                     ])
                                     ->createOptionUsing(function (array $data) {
+                                        $maxOrder = \App\Models\AttachmentType::max('display_order') ?? 0;
+                                        $data['category'] = 'imaging';
+                                        $data['display_order'] = $maxOrder + 1;
                                         $data['is_active'] = true;
-                                        $data['usage_count'] = 0;
-                                        return \App\Models\ImagingStudy::create($data)->id;
+                                        return \App\Models\AttachmentType::create($data)->id;
                                     })
                                     ->columnSpan(2),
 
@@ -510,20 +477,23 @@ class TreatmentPlanTab
                             ->reorderable(false)
                             ->itemLabel(
                                 fn(array $state): ?string =>
-                                \App\Models\ImagingStudy::find($state['imaging_study_id'])?->name_ar ?? 'أشعة جديدة'
+                                \App\Models\AttachmentType::find($state['attachment_type_id'])?->full_name ?? 'أشعة جديدة'
                             )
                             ->addActionLabel('إضافة أشعة')
                             ->defaultItems(0)
                             ->columnSpanFull()
                             ->afterStateHydrated(function ($component, $state, $record) {
                                 if ($record) {
-                                    $record->load('imagingStudies');
+                                    // تحميل طلبات الأشعة من visit_imaging_studies
+                                    $imagingRequests = \DB::table('visit_imaging_studies')
+                                        ->where('visit_id', $record->id)
+                                        ->get();
 
-                                    if ($record->imagingStudies->count() > 0) {
-                                        $data = $record->imagingStudies->map(function ($imaging) {
+                                    if ($imagingRequests->count() > 0) {
+                                        $data = $imagingRequests->map(function ($request) {
                                             return [
-                                                'imaging_study_id' => $imaging->id,
-                                                'notes' => $imaging->pivot->notes,
+                                                'attachment_type_id' => $request->attachment_type_id,
+                                                'notes' => $request->notes,
                                             ];
                                         })->toArray();
 
@@ -563,7 +533,106 @@ class TreatmentPlanTab
                     ->columns(4)
                     ->collapsible(),
 
-                // ==================== 6. الإحالة والاستشارات ====================
+                // ==================== 6. طلبات التشريح المرضي ====================
+                Section::make('طلبات التشريح المرضي')
+                    ->icon('heroicon-o-beaker')
+                    ->description('إضافة طلبات التشريح المرضي مع تحديد التاريخ المتوقع للنتيجة')
+                    ->schema([
+                        Repeater::make('pathologyRequestsData')
+                            ->label('طلبات التشريح المرضي')
+                            ->schema([
+                                Select::make('pathology_type')
+                                    ->label('نوع التشريح')
+                                    ->options([
+                                        'esophagus' => 'تشريح مرضي - مريء',
+                                        'stomach' => 'تشريح مرضي - معدة',
+                                        'duodenum' => 'تشريح مرضي - اثني عشري',
+                                        'ileum' => 'تشريح مرضي - دقاق',
+                                        'colon' => 'تشريح مرضي - كولون',
+                                        'liver' => 'تشريح مرضي - كبد',
+                                        'pancreas' => 'تشريح مرضي - بنكرياس',
+                                        'other' => 'أخرى',
+                                    ])
+                                    ->required()
+                                    ->native(false)
+                                    ->columnSpan(2),
+
+                                DatePicker::make('request_date')
+                                    ->label('تاريخ الطلب')
+                                    ->required()
+                                    ->default(now())
+                                    ->native(false)
+                                    ->columnSpan(1),
+
+                                DatePicker::make('expected_result_date')
+                                    ->label('التاريخ المتوقع للنتيجة')
+                                    ->helperText('تاريخ تذكير لصدور النتيجة')
+                                    ->native(false)
+                                    ->columnSpan(1),
+
+                                Textarea::make('description')
+                                    ->label('وصف الطلب')
+                                    ->rows(2)
+                                    ->placeholder('تفاصيل الطلب...')
+                                    ->columnSpan(2),
+
+                                Textarea::make('clinical_notes')
+                                    ->label('ملاحظات سريرية')
+                                    ->rows(2)
+                                    ->placeholder('معلومات سريرية مهمة...')
+                                    ->columnSpan(2),
+
+                                Select::make('status')
+                                    ->label('الحالة')
+                                    ->options([
+                                        'pending' => 'قيد الانتظار',
+                                        'in_progress' => 'قيد المعالجة',
+                                        'completed' => 'مكتمل',
+                                        'cancelled' => 'ملغي',
+                                    ])
+                                    ->default('pending')
+                                    ->required()
+                                    ->native(false)
+                                    ->columnSpan(2),
+
+                                DatePicker::make('actual_result_date')
+                                    ->label('تاريخ صدور النتيجة الفعلي')
+                                    ->native(false)
+                                    ->visible(fn($get) => $get('status') === 'completed')
+                                    ->columnSpan(2),
+
+                                Textarea::make('result')
+                                    ->label('النتيجة')
+                                    ->rows(3)
+                                    ->placeholder('نتيجة التشريح المرضي...')
+                                    ->visible(fn($get) => $get('status') === 'completed')
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(4)
+                            ->defaultItems(0)
+                            ->addActionLabel('+ إضافة طلب تشريح مرضي')
+                            ->collapsible()
+                            ->itemLabel(fn(array $state): ?string =>
+                                isset($state['pathology_type'])
+                                    ? match($state['pathology_type']) {
+                                        'esophagus' => '🧪 مريء',
+                                        'stomach' => '🧪 معدة',
+                                        'duodenum' => '🧪 اثني عشري',
+                                        'ileum' => '🧪 دقاق',
+                                        'colon' => '🧪 كولون',
+                                        'liver' => '🧪 كبد',
+                                        'pancreas' => '🧪 بنكرياس',
+                                        'other' => '🧪 أخرى',
+                                        default => 'طلب تشريح مرضي',
+                                    }
+                                    : 'طلب تشريح مرضي'
+                            )
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
+
+                // ==================== 7. الإحالة والاستشارات ====================
                 Section::make('الإحالة والاستشارات')
                     ->icon('heroicon-o-users')
                     ->schema([

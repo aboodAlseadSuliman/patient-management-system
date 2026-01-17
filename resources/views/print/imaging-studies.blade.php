@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الأشعة المطلوبة - {{ $patient->full_name }}</title>
+    <title>طلب أشعة - {{ $patient->full_name }}</title>
     <style>
         * {
             margin: 0;
@@ -24,13 +25,13 @@
             text-align: center;
             margin-bottom: 30px;
             padding-bottom: 15px;
-            border-bottom: 3px solid #f97316;
+            border-bottom: 3px solid #10b981;
         }
 
         .logo-space {
             min-height: 70px;
             margin-bottom: 10px;
-            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -41,7 +42,7 @@
 
         .header h1 {
             font-size: 22px;
-            color: #c2410c;
+            color: #065f46;
             margin-bottom: 5px;
         }
 
@@ -55,12 +56,12 @@
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
-            border-right: 4px solid #f97316;
+            border-right: 4px solid #10b981;
         }
 
         .patient-info h2 {
             font-size: 15px;
-            color: #c2410c;
+            color: #065f46;
             margin-bottom: 10px;
             padding-bottom: 5px;
             border-bottom: 1px solid #d1d5db;
@@ -93,85 +94,98 @@
 
         .imaging-section h2 {
             font-size: 16px;
-            color: #ea580c;
+            color: #2563eb;
             margin-bottom: 12px;
             padding: 8px 12px;
-            background: linear-gradient(to left, #fff7ed, #ffffff);
-            border-right: 4px solid #f97316;
+            background: linear-gradient(to left, #eff6ff, #ffffff);
+            border-right: 4px solid #3b82f6;
             border-radius: 4px;
+        }
+
+        .imaging-list {
+            counter-reset: imaging-counter;
         }
 
         .imaging-item {
-            padding: 15px;
-            margin-bottom: 12px;
-            background: #f9fafb;
+            counter-increment: imaging-counter;
+            padding: 10px 35px 10px 12px;
+            margin-bottom: 6px;
+            background: #ffffff;
             border: 1px solid #e5e7eb;
             border-radius: 6px;
-            border-right: 3px solid #fb923c;
+            position: relative;
         }
 
-        .imaging-header {
-            font-size: 15px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 8px;
-            padding-bottom: 6px;
-            border-bottom: 1px dashed #d1d5db;
-        }
-
-        .imaging-number {
-            display: inline-block;
-            background: #f97316;
+        .imaging-item::before {
+            content: counter(imaging-counter);
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            background: #3b82f6;
             color: white;
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             text-align: center;
-            line-height: 24px;
+            line-height: 26px;
+            font-weight: bold;
             font-size: 13px;
-            margin-left: 6px;
         }
 
         .imaging-name {
-            color: #c2410c;
+            font-size: 14px;
             font-weight: 600;
+            color: #1f2937;
         }
 
-        .imaging-type {
-            color: #ea580c;
-            font-size: 13px;
-            background: #ffedd5;
-            padding: 2px 8px;
-            border-radius: 4px;
-            display: inline-block;
-            margin: 0 4px;
+        .imaging-icon {
+            font-size: 16px;
+            margin-left: 4px;
         }
 
-        .imaging-body-part {
+        .imaging-name-en {
             color: #6b7280;
-            font-size: 13px;
+            font-size: 12px;
             font-style: italic;
+            margin-top: 2px;
         }
 
-        .imaging-notes {
-            margin-top: 10px;
-            padding: 8px 10px;
+        .notes-section {
+            margin-top: 8px;
+            padding: 10px;
             background: #fffbeb;
-            border-right: 3px solid #f59e0b;
-            border-radius: 4px;
+            border: 1px dashed #f59e0b;
+            border-radius: 6px;
         }
 
-        .imaging-notes-label {
-            font-weight: 600;
-            color: #92400e;
-            font-size: 13px;
-            margin-bottom: 4px;
+        .notes-section h3 {
+            font-size: 12px;
+            color: #b45309;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .imaging-notes-content {
+        .notes-content {
             color: #78350f;
-            font-size: 13px;
-            line-height: 1.5;
+            line-height: 1.6;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca3af;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 2px dashed #d1d5db;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
         }
 
         /* أنماط الطباعة */
@@ -203,7 +217,7 @@
             top: 20px;
             left: 20px;
             padding: 12px 24px;
-            background: #f97316;
+            background: #3b82f6;
             color: white;
             border: none;
             border-radius: 8px;
@@ -215,18 +229,19 @@
         }
 
         .print-button:hover {
-            background: #ea580c;
+            background: #2563eb;
         }
     </style>
 </head>
+
 <body>
     <button onclick="window.print()" class="print-button no-print">🖨️ طباعة</button>
 
     <div class="header">
         <div class="logo-space">
-            [مساحة مخصصة لشعار وزارة الصحة]
+            [مساحة مخصصة لشعار المركز الطبي]
         </div>
-        <h1>الأشعة المطلوبة</h1>
+        <h1>طلب أشعة وتصوير طبي</h1>
         <p>{{ now()->locale('ar')->isoFormat('dddd، D MMMM YYYY') }} - {{ now()->format('h:i A') }}</p>
     </div>
 
@@ -253,43 +268,41 @@
     </div>
 
     <div class="imaging-section">
-        <h2>الأشعة المطلوبة ({{ $imagingStudies->count() }} {{ $imagingStudies->count() == 1 ? 'فحص' : ($imagingStudies->count() == 2 ? 'فحصان' : 'فحوصات') }})</h2>
+        <h2>الأشعة المطلوبة ({{ $imagingStudies->count() }} {{ $imagingStudies->count() == 1 ? 'أشعة' : 'أشعة' }})</h2>
 
-        @foreach($imagingStudies as $index => $imaging)
-        <div class="imaging-item">
-            <div class="imaging-header">
-                <span class="imaging-number">{{ $index + 1 }}</span>
-                <span class="imaging-name">{{ $imaging->name_ar }}</span>
+        @if($imagingStudies->count() > 0)
+            <div class="imaging-list">
+                @foreach($imagingStudies as $imaging)
+                    <div class="imaging-item">
+                        <div class="imaging-name">
+                            @if($imaging->icon)
+                                <span class="imaging-icon">{{ $imaging->icon }}</span>
+                            @endif
+                            {{ $imaging->name_ar }}
+                        </div>
+                        @if($imaging->name_en)
+                            <div class="imaging-name-en">{{ $imaging->name_en }}</div>
+                        @endif
 
-                @php
-                    $types = [
-                        'x-ray' => 'أشعة عادية',
-                        'ct' => 'أشعة مقطعية',
-                        'mri' => 'رنين مغناطيسي',
-                        'ultrasound' => 'إيكو/سونار',
-                        'doppler' => 'دوبلر',
-                        'other' => 'أخرى',
-                    ];
-                @endphp
-                <span class="imaging-type">{{ $types[$imaging->type] ?? $imaging->type }}</span>
-
-                @if($imaging->body_part)
-                    <span class="imaging-body-part">- {{ $imaging->body_part }}</span>
-                @endif
-
-                @if($imaging->abbreviation)
-                    <span class="imaging-body-part">({{ $imaging->abbreviation }})</span>
-                @endif
+                        @if($imaging->notes)
+                            <div class="notes-section">
+                                <h3>
+                                    <span>📋</span>
+                                    <span>ملاحظات وتعليمات</span>
+                                </h3>
+                                <div class="notes-content">{{ $imaging->notes }}</div>
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
             </div>
-
-            @if($imaging->pivot && $imaging->pivot->notes)
-            <div class="imaging-notes">
-                <div class="imaging-notes-label">📋 ملاحظات وتعليمات:</div>
-                <div class="imaging-notes-content">{{ $imaging->pivot->notes }}</div>
+        @else
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <h3>لا توجد أشعة مطلوبة</h3>
+                <p style="font-size: 12px; margin-top: 5px;">لم يتم طلب أي أشعة لهذه الزيارة</p>
             </div>
-            @endif
-        </div>
-        @endforeach
+        @endif
     </div>
 
     <script>
@@ -302,4 +315,5 @@
         };
     </script>
 </body>
+
 </html>

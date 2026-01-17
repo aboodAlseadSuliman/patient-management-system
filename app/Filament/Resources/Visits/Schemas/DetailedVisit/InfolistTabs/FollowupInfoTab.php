@@ -75,7 +75,20 @@ class FollowupInfoTab
                     ->description('التشخيص المؤكد بعد الفحوصات والمتابعة')
                     ->schema([
                         TextEntry::make('followup.final_diagnosis')
-                            ->label('التشخيص النهائي')
+                            ->label('التشخيصات النهائية')
+                            ->formatStateUsing(function ($state) {
+                                if (empty($state)) {
+                                    return 'لم يتم تحديد التشخيص النهائي بعد';
+                                }
+
+                                if (is_array($state)) {
+                                    return collect($state)->map(function ($diagnosis) {
+                                        return "• {$diagnosis}";
+                                    })->implode("\n");
+                                }
+
+                                return $state;
+                            })
                             ->markdown()
                             ->placeholder('لم يتم تحديد التشخيص النهائي بعد')
                             ->columnSpanFull(),

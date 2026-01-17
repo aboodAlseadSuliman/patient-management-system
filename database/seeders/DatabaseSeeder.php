@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
 
             PatientSeeder::class,           // 7. المرضى (يحتاج users + قواميس)
             VisitSeeder::class,             // 8. أخيراً (يحتاج patients)
-            ImagingStudySeeder::class,
+            // ImagingStudySeeder تم حذفه - استخدم AttachmentTypeSeeder
             LabTestSeeder::class,
             AppointmentSeeder::class, // المواعيد
 

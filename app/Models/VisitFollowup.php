@@ -47,6 +47,8 @@ class VisitFollowup extends Model
         'suspected_cirrhosis' => 'boolean',
         'liver_masses_for_study' => 'boolean',
         'biliary_obstruction_for_study' => 'boolean',
+        // التشخيص النهائي
+        'final_diagnosis' => 'array',
         // المراجعة
         'followup_required' => 'boolean',
     ];

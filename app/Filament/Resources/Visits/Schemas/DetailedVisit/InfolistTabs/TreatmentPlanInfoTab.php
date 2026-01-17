@@ -324,26 +324,12 @@ class TreatmentPlanInfoTab
                                 $items = [];
                                 foreach ($imagingStudies as $index => $imaging) {
                                     $number = $index + 1;
-                                    $text = "**{$number}. {$imaging->name_ar}**";
 
-                                    // نوع الأشعة
-                                    $types = [
-                                        'x-ray' => 'أشعة عادية',
-                                        'ct' => 'أشعة مقطعية',
-                                        'mri' => 'رنين مغناطيسي',
-                                        'ultrasound' => 'إيكو/سونار',
-                                        'doppler' => 'دوبلر',
-                                        'other' => 'أخرى',
-                                    ];
-                                    $typeLabel = $types[$imaging->type] ?? $imaging->type;
-                                    $text .= " ({$typeLabel})";
+                                    // استخدام icon و full_name من AttachmentType
+                                    $text = "{$imaging->icon} **{$number}. {$imaging->full_name}**";
 
-                                    if ($imaging->body_part) {
-                                        $text .= " - {$imaging->body_part}";
-                                    }
-
-                                    if ($imaging->abbreviation) {
-                                        $text .= " ({$imaging->abbreviation})";
+                                    if ($imaging->name_en) {
+                                        $text .= " ({$imaging->name_en})";
                                     }
 
                                     if ($imaging->pivot && $imaging->pivot->notes) {

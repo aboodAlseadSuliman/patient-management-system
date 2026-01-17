@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <title>الأشعة المطلوبة - {{ $patient->full_name }}</title>
@@ -15,13 +16,13 @@
             text-align: center;
             margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #f97316;
+            border-bottom: 2px solid #3b82f6;
         }
 
         .logo-space {
             min-height: 50px;
             margin-bottom: 8px;
-            background: #fff7ed;
+            background: #eff6ff;
             border-radius: 5px;
             text-align: center;
             padding: 15px;
@@ -31,7 +32,7 @@
 
         .header h1 {
             font-size: 18px;
-            color: #c2410c;
+            color: #1e40af;
             margin: 8px 0;
         }
 
@@ -45,12 +46,12 @@
             padding: 12px;
             border-radius: 5px;
             margin-bottom: 15px;
-            border-right: 3px solid #f97316;
+            border-right: 3px solid #3b82f6;
         }
 
         .patient-info h2 {
             font-size: 13px;
-            color: #c2410c;
+            color: #1e40af;
             margin-bottom: 8px;
             padding-bottom: 4px;
             border-bottom: 1px solid #d1d5db;
@@ -73,11 +74,11 @@
 
         .imaging-section h2 {
             font-size: 14px;
-            color: #ea580c;
+            color: #1e3a8a;
             margin-bottom: 10px;
             padding: 6px 10px;
-            background: #fff7ed;
-            border-right: 3px solid #f97316;
+            background: #eff6ff;
+            border-right: 3px solid #3b82f6;
             border-radius: 3px;
         }
 
@@ -87,7 +88,7 @@
             background: #f9fafb;
             border: 1px solid #e5e7eb;
             border-radius: 5px;
-            border-right: 2px solid #fb923c;
+            border-right: 2px solid #60a5fa;
             page-break-inside: avoid;
         }
 
@@ -102,7 +103,7 @@
 
         .imaging-number {
             display: inline-block;
-            background: #f97316;
+            background: #3b82f6;
             color: white;
             width: 20px;
             height: 20px;
@@ -114,13 +115,13 @@
         }
 
         .imaging-name {
-            color: #c2410c;
+            color: #1e40af;
         }
 
         .imaging-type {
-            color: #ea580c;
+            color: #1e3a8a;
             font-size: 11px;
-            background: #ffedd5;
+            background: #dbeafe;
             padding: 1px 6px;
             border-radius: 3px;
         }
@@ -153,6 +154,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="header">
         <div class="logo-space">
@@ -192,23 +194,23 @@
                 <span class="imaging-name">{{ $imaging->name_ar }}</span>
 
                 @php
-                    $types = [
-                        'x-ray' => 'أشعة عادية',
-                        'ct' => 'أشعة مقطعية',
-                        'mri' => 'رنين مغناطيسي',
-                        'ultrasound' => 'إيكو/سونار',
-                        'doppler' => 'دوبلر',
-                        'other' => 'أخرى',
-                    ];
+                $types = [
+                'x-ray' => 'أشعة عادية',
+                'ct' => 'أشعة مقطعية',
+                'mri' => 'رنين مغناطيسي',
+                'ultrasound' => 'إيكو/سونار',
+                'doppler' => 'دوبلر',
+                'other' => 'أخرى',
+                ];
                 @endphp
                 <span class="imaging-type">{{ $types[$imaging->type] ?? $imaging->type }}</span>
 
                 @if($imaging->body_part)
-                    <span class="imaging-body-part">- {{ $imaging->body_part }}</span>
+                <span class="imaging-body-part">- {{ $imaging->body_part }}</span>
                 @endif
 
                 @if($imaging->abbreviation)
-                    <span class="imaging-body-part">({{ $imaging->abbreviation }})</span>
+                <span class="imaging-body-part">({{ $imaging->abbreviation }})</span>
                 @endif
             </div>
 
@@ -222,4 +224,5 @@
         @endforeach
     </div>
 </body>
+
 </html>

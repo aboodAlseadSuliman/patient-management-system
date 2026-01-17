@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\LabTest;
-use App\Models\ImagingStudy;
 
 
 class Visit extends Model
@@ -224,11 +223,21 @@ class Visit extends Model
         return $this->hasMany(LabTestResult::class);
     }
 
+    /**
+     * العلاقة مع طلبات الأشعة عبر attachment_types
+     * يتم استخدام علاقة مخصصة لأن الجدول الوسيط يربط مع attachment_types بدلاً من imaging_studies
+     */
     public function imagingStudies()
     {
-        return $this->belongsToMany(ImagingStudy::class, 'visit_imaging_studies')
-            ->withPivot(['findings', 'impression', 'study_date', 'notes'])
-            ->withTimestamps();
+        return $this->belongsToMany(
+            \App\Models\AttachmentType::class,
+            'visit_imaging_studies',
+            'visit_id',
+            'attachment_type_id'
+        )
+        ->where('attachment_types.category', 'imaging')
+        ->withPivot(['notes', 'findings', 'impression', 'study_date'])
+        ->withTimestamps();
     }
 
     // العلاقات الجديدة للواجهات الأربعة
@@ -265,5 +274,10 @@ class Visit extends Model
     public function attachmentFiles()
     {
         return $this->hasMany(VisitAttachmentFile::class);
+    }
+
+    public function pathologyRequests()
+    {
+        return $this->hasMany(PathologyRequest::class);
     }
 }

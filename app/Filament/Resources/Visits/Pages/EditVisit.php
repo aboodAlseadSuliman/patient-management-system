@@ -41,6 +41,7 @@ class EditVisit extends EditRecord
             'attachmentFiles',
             'labTestResults.labTest',
             'labTestResults.attachmentFile',
+            'pathologyRequests',
         ]);
     }
 
@@ -85,7 +86,8 @@ class EditVisit extends EditRecord
 
                 return [
                     'id' => $file->id,
-                    'attachment_type' => $file->attachment_type,
+                    'attachment_type_id' => $file->attachment_type_id,
+                    'attachment_type' => $file->attachment_type, // للتوافق مع البيانات القديمة
                     'attachment_name' => $file->attachment_name,
                     'file_path' => $filePath,
                     'notes' => $file->notes,
@@ -115,6 +117,23 @@ class EditVisit extends EditRecord
                     'previous_value' => $result->previous_value,
                     'previous_test_date' => $result->previous_test_date,
                     'notes' => $result->notes,
+                ];
+            })->toArray();
+        }
+
+        // تحميل بيانات طلبات التشريح المرضي
+        if ($visit->pathologyRequests->isNotEmpty()) {
+            $data['pathologyRequestsData'] = $visit->pathologyRequests->map(function ($request) {
+                return [
+                    'id' => $request->id,
+                    'pathology_type' => $request->pathology_type,
+                    'description' => $request->description,
+                    'clinical_notes' => $request->clinical_notes,
+                    'request_date' => $request->request_date,
+                    'expected_result_date' => $request->expected_result_date,
+                    'actual_result_date' => $request->actual_result_date,
+                    'status' => $request->status,
+                    'result' => $request->result,
                 ];
             })->toArray();
         }
@@ -222,7 +241,8 @@ class EditVisit extends EditRecord
 
                                 // تحديث بمعلومات الملف الجديد
                                 $existingAttachment->update([
-                                    'attachment_type' => $attachmentData['attachment_type'],
+                                    'attachment_type_id' => $attachmentData['attachment_type_id'] ?? null,
+                                    'attachment_type' => $attachmentData['attachment_type'] ?? null,
                                     'attachment_name' => $attachmentData['attachment_name'] ?? null,
                                     'file_path' => $filePath, // حفظ المسار النسبي فقط
                                     'original_filename' => basename($filePath),
@@ -233,7 +253,8 @@ class EditVisit extends EditRecord
                             } else {
                                 // تحديث فقط النوع والاسم والملاحظات (الملف لم يتغير)
                                 $existingAttachment->update([
-                                    'attachment_type' => $attachmentData['attachment_type'],
+                                    'attachment_type_id' => $attachmentData['attachment_type_id'] ?? null,
+                                    'attachment_type' => $attachmentData['attachment_type'] ?? null,
                                     'attachment_name' => $attachmentData['attachment_name'] ?? null,
                                     'notes' => $attachmentData['notes'] ?? null,
                                 ]);
@@ -242,7 +263,8 @@ class EditVisit extends EditRecord
                     } else {
                         // إنشاء مرفق جديد
                         $visit->attachmentFiles()->create([
-                            'attachment_type' => $attachmentData['attachment_type'],
+                            'attachment_type_id' => $attachmentData['attachment_type_id'] ?? null,
+                            'attachment_type' => $attachmentData['attachment_type'] ?? null,
                             'attachment_name' => $attachmentData['attachment_name'] ?? null,
                             'file_path' => $filePath, // حفظ المسار النسبي فقط
                             'original_filename' => basename($filePath),
@@ -361,28 +383,31 @@ class EditVisit extends EditRecord
         }
 
         // ==================== حفظ الأشعة المطلوبة ====================
-        if (isset($data['imagingStudiesData']) && !empty($data['imagingStudiesData'])) {
-            \Log::info('EditVisit - Starting imaging studies sync');
-            $syncData = [];
+        if (isset($data['imagingStudiesData'])) {
+            \Log::info('EditVisit - Starting imaging studies update');
 
-            foreach ($data['imagingStudiesData'] as $imagingData) {
-                \Log::info('EditVisit - Processing imaging study:', ['imagingData' => $imagingData]);
-                if (isset($imagingData['imaging_study_id'])) {
-                    $syncData[$imagingData['imaging_study_id']] = [
-                        'notes' => $imagingData['notes'] ?? null,
-                        'findings' => null,
-                        'impression' => null,
-                        'study_date' => null,
-                    ];
+            // حذف الطلبات القديمة
+            \DB::table('visit_imaging_studies')->where('visit_id', $visit->id)->delete();
+
+            // إضافة الطلبات الجديدة
+            if (!empty($data['imagingStudiesData'])) {
+                foreach ($data['imagingStudiesData'] as $imagingData) {
+                    \Log::info('EditVisit - Processing imaging study:', ['imagingData' => $imagingData]);
+                    if (isset($imagingData['attachment_type_id'])) {
+                        \DB::table('visit_imaging_studies')->insert([
+                            'visit_id' => $visit->id,
+                            'attachment_type_id' => $imagingData['attachment_type_id'],
+                            'notes' => $imagingData['notes'] ?? null,
+                            'findings' => null,
+                            'impression' => null,
+                            'study_date' => null,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
                 }
             }
-            \Log::info('EditVisit - Imaging studies sync data prepared:', ['syncData' => $syncData]);
-            $visit->imagingStudies()->sync($syncData);
-            \Log::info('EditVisit - Imaging studies sync completed');
-
-            // التحقق من الحفظ
-            $savedCount = $visit->imagingStudies()->count();
-            \Log::info('EditVisit - Imaging studies saved count:', ['count' => $savedCount]);
+            \Log::info('EditVisit - Imaging studies update completed');
         } else {
             \Log::warning('EditVisit - imagingStudiesData is empty or not set');
         }
@@ -435,7 +460,13 @@ class EditVisit extends EditRecord
                             }
 
                             // رفع الصورة الجديدة
+                            // الحصول على attachment_type_id لنوع "تقرير تحاليل"
+                            $labReportType = \App\Models\AttachmentType::where('name_ar', 'تقرير تحاليل')
+                                ->orWhere('name_en', 'Lab Report')
+                                ->first();
+
                             $attachmentFile = $visit->attachmentFiles()->create([
+                                'attachment_type_id' => $labReportType ? $labReportType->id : null,
                                 'attachment_type' => 'lab-report',
                                 'file_path' => $filePath,
                                 'original_filename' => basename($filePath),
@@ -480,6 +511,49 @@ class EditVisit extends EditRecord
                             'notes' => $resultData['notes'] ?? null,
                         ]);
                     }
+                }
+            }
+        }
+
+        // ==================== تحديث طلبات التشريح المرضي ====================
+        if (isset($data['pathologyRequestsData'])) {
+            // حذف الطلبات التي تم إزالتها
+            $submittedIds = collect($data['pathologyRequestsData'])
+                ->filter(fn($item) => isset($item['id']))
+                ->pluck('id')
+                ->toArray();
+
+            $visit->pathologyRequests()
+                ->whereNotIn('id', $submittedIds)
+                ->delete();
+
+            // إضافة أو تحديث الطلبات
+            foreach ($data['pathologyRequestsData'] as $requestData) {
+                if (isset($requestData['id'])) {
+                    // تحديث طلب موجود
+                    $visit->pathologyRequests()->where('id', $requestData['id'])->update([
+                        'pathology_type' => $requestData['pathology_type'],
+                        'description' => $requestData['description'] ?? null,
+                        'clinical_notes' => $requestData['clinical_notes'] ?? null,
+                        'request_date' => $requestData['request_date'] ?? now(),
+                        'expected_result_date' => $requestData['expected_result_date'] ?? null,
+                        'actual_result_date' => $requestData['actual_result_date'] ?? null,
+                        'status' => $requestData['status'] ?? 'pending',
+                        'result' => $requestData['result'] ?? null,
+                    ]);
+                } else {
+                    // إنشاء طلب جديد
+                    $visit->pathologyRequests()->create([
+                        'patient_id' => $visit->patient_id,
+                        'pathology_type' => $requestData['pathology_type'],
+                        'description' => $requestData['description'] ?? null,
+                        'clinical_notes' => $requestData['clinical_notes'] ?? null,
+                        'request_date' => $requestData['request_date'] ?? now(),
+                        'expected_result_date' => $requestData['expected_result_date'] ?? null,
+                        'actual_result_date' => $requestData['actual_result_date'] ?? null,
+                        'status' => $requestData['status'] ?? 'pending',
+                        'result' => $requestData['result'] ?? null,
+                    ]);
                 }
             }
         }

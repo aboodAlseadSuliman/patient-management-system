@@ -21,7 +21,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/visits/{visit}/print-medications', [MedicationPrintController::class, 'print'])
         ->name('visits.print-medications');
 
-    // مسار الطباعة المباشرة للأشعة
+    // مسار الطباعة المباشرة للأشعة المطلوبة
     Route::get('/visits/{visit}/print-imaging-studies', [ImagingStudyPrintController::class, 'print'])
         ->name('visits.print-imaging-studies');
 });

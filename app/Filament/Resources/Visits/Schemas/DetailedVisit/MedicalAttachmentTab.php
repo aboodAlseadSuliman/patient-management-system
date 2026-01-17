@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Visits\Schemas\DetailedVisit;
 
+use App\Models\AttachmentType;
 use App\Models\LabTest;
 use App\Models\LabTestResult;
 use Filament\Forms\Components\DatePicker;
@@ -32,21 +33,49 @@ class MedicalAttachmentTab
                         Repeater::make('attachment_files_data')
                             ->label('المرفقات')
                             ->schema([
-                                Select::make('attachment_type')
+                                Select::make('attachment_type_id')
                                     ->label('نوع المرفق')
                                     ->required()
-                                    ->options([
-                                        'x-ray' => 'أشعة بسيطة (X-Ray)',
-                                        'ultrasound' => 'إيكو بطني (Ultrasound)',
-                                        'ct-scan' => 'طبقي محوري (CT Scan)',
-                                        'mri' => 'رنين مغناطيسي (MRI)',
-                                        'endoscopy' => 'تنظير',
-                                        'lab-report' => 'تقرير تحاليل',
-                                        'document' => 'مستند طبي',
-                                        'other' => 'أخرى',
-                                    ])
+                                    ->options(function () {
+                                        return AttachmentType::active()
+                                            ->ordered()
+                                            ->get()
+                                            ->mapWithKeys(fn($type) => [$type->id => $type->full_name]);
+                                    })
                                     ->searchable()
+                                    ->preload()
                                     ->native(false)
+                                    ->createOptionForm([
+                                        TextInput::make('name_ar')
+                                            ->label('الاسم بالعربية')
+                                            ->required()
+                                            ->maxLength(255),
+                                        TextInput::make('name_en')
+                                            ->label('الاسم بالإنجليزية')
+                                            ->maxLength(255),
+                                        TextInput::make('icon')
+                                            ->label('الأيقونة')
+                                            ->default('📎')
+                                            ->required()
+                                            ->maxLength(10)
+                                            ->helperText('اختر رمز تعبيري للنوع'),
+                                        Select::make('category')
+                                            ->label('التصنيف')
+                                            ->options([
+                                                'imaging' => 'أشعة وتصوير طبي',
+                                                'endoscopy' => 'تنظير',
+                                                'pathology' => 'تشريح مرضي',
+                                                'other' => 'أخرى',
+                                            ])
+                                            ->required()
+                                            ->native(false),
+                                    ])
+                                    ->createOptionUsing(function ($data) {
+                                        $maxOrder = AttachmentType::max('display_order') ?? 0;
+                                        $data['display_order'] = $maxOrder + 1;
+                                        $data['is_active'] = true;
+                                        return AttachmentType::create($data)->id;
+                                    })
                                     ->columnSpan(1),
 
                                 TextInput::make('attachment_name')
@@ -111,19 +140,12 @@ class MedicalAttachmentTab
                                     return $state['attachment_name'];
                                 }
 
-                                // وإلا، استخدم نوع المرفق
-                                if (isset($state['attachment_type'])) {
-                                    return match ($state['attachment_type']) {
-                                        'x-ray' => 'أشعة بسيطة (X-Ray)',
-                                        'ultrasound' => 'إيكو بطني (Ultrasound)',
-                                        'ct-scan' => 'طبقي محوري (CT Scan)',
-                                        'mri' => 'رنين مغناطيسي (MRI)',
-                                        'endoscopy' => 'تنظير',
-                                        'lab-report' => 'تقرير تحاليل',
-                                        'document' => 'مستند طبي',
-                                        'other' => 'أخرى',
-                                        default => 'مرفق طبي'
-                                    };
+                                // وإلا، استخدم نوع المرفق من العلاقة
+                                if (isset($state['attachment_type_id'])) {
+                                    $attachmentType = AttachmentType::find($state['attachment_type_id']);
+                                    if ($attachmentType) {
+                                        return $attachmentType->full_name;
+                                    }
                                 }
 
                                 return 'مرفق طبي';
