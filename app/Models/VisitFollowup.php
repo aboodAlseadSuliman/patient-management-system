@@ -21,8 +21,8 @@ class VisitFollowup extends Model
         // الأمراض المزمنة (4)
         'chronic_esophagus_stomach', 'chronic_intestines_colon',
         'chronic_liver', 'chronic_biliary_pancreas',
-        // المراجعة (2)
-        'followup_required', 'followup_period',
+        // المراجعة (3)
+        'followup_required', 'followup_period', 'next_visit_date',
         // الحالة النهائية (1)
         'final_status',
     ];
@@ -51,6 +51,7 @@ class VisitFollowup extends Model
         'final_diagnosis' => 'array',
         // المراجعة
         'followup_required' => 'boolean',
+        'next_visit_date' => 'date',
     ];
 
     public function visit(): BelongsTo
