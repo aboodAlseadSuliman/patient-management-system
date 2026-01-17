@@ -23,12 +23,15 @@ class ListPatients extends ListRecords
                 ->label('استيراد')
                 ->importer(PatientImporter::class)
                 ->icon('heroicon-o-arrow-down-tray')
-                ->color('success'),
+                ->color('success')
+                ->maxRows(10000),
             ExportAction::make()
                 ->label('تصدير')
                 ->exporter(PatientExporter::class)
                 ->icon('heroicon-o-arrow-up-tray')
-                ->color('primary'),
+                ->color('primary')
+                ->fileName('المرضى-' . date('Y-m-d'))
+                ->maxRows(10000),
         ];
     }
 }
