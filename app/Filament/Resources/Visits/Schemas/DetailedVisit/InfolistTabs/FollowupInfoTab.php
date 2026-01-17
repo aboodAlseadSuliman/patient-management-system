@@ -208,7 +208,6 @@ class FollowupInfoTab
                             ->falseIcon('heroicon-o-x-circle')
                             ->trueColor('success')
                             ->falseColor('warning')
-                            ->size(IconEntry\IconEntrySize::Large)
                             ->columnSpanFull(),
                     ])
                     ->collapsible(),
