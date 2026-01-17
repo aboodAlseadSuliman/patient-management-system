@@ -19,47 +19,21 @@ class ListPatients extends ListRecords
         return [
             CreateAction::make()
                 ->label('إضافة مريض'),
-            \Filament\Actions\Action::make('download_latest_export')
-                ->label('تحميل آخر تصدير')
-                ->icon('heroicon-o-arrow-down-circle')
+            \Filament\Actions\Action::make('direct_export')
+                ->label('تصدير Excel')
+                ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
                 ->action(function () {
-                    $latestExport = \Filament\Actions\Exports\Models\Export::where('user_id', auth()->id())
-                        ->where('exporter', \App\Filament\Exports\PatientExporter::class)
-                        ->whereNotNull('completed_at')
-                        ->latest()
-                        ->first();
-
-                    if ($latestExport) {
-                        $filePath = storage_path('app/' . $latestExport->file_disk . '/filament_exports/' . $latestExport->id . '/' . $latestExport->file_name . '.xlsx');
-
-                        if (file_exists($filePath)) {
-                            return response()->download($filePath, 'المرضى-' . date('Y-m-d') . '.xlsx');
-                        }
-                    }
-
-                    \Filament\Notifications\Notification::make()
-                        ->title('لا يوجد ملف')
-                        ->body('لم يتم العثور على ملف تصدير سابق')
-                        ->warning()
-                        ->send();
-                })
-                ->visible(fn () => \Filament\Actions\Exports\Models\Export::where('user_id', auth()->id())
-                    ->where('exporter', \App\Filament\Exports\PatientExporter::class)
-                    ->whereNotNull('completed_at')
-                    ->exists()),
+                    return \Maatwebsite\Excel\Facades\Excel::download(
+                        new \App\Exports\PatientsExport(),
+                        'المرضى-' . date('Y-m-d') . '.xlsx'
+                    );
+                }),
             ImportAction::make()
                 ->label('استيراد')
                 ->importer(PatientImporter::class)
-                ->icon('heroicon-o-arrow-down-tray')
-                ->color('info')
-                ->maxRows(10000),
-            ExportAction::make()
-                ->label('تصدير')
-                ->exporter(PatientExporter::class)
                 ->icon('heroicon-o-arrow-up-tray')
-                ->color('primary')
-                ->fileName('المرضى-' . date('Y-m-d'))
+                ->color('info')
                 ->maxRows(10000),
         ];
     }
