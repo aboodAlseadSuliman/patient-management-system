@@ -7,6 +7,7 @@ use Filament\Schemas\Components\Tabs;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\PatientVisitInfoTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\ComplaintSymptomTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\OrganizedComplaintTab;
+use App\Filament\Resources\Visits\Schemas\DetailedVisit\ComplaintSymptomTabV2;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\TimelineTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\MedicalAttachmentTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\ClinicalExaminationTab;
@@ -25,6 +26,7 @@ class VisitForm
                         PatientVisitInfoTab::make(),
                         ComplaintSymptomTab::make(),
                         OrganizedComplaintTab::make(),
+                        ComplaintSymptomTabV2::make(),
                         TimelineTab::make(),
                         MedicalAttachmentTab::make(),
                         ClinicalExaminationTab::make(),

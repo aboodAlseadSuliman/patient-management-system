@@ -77,6 +77,22 @@ class PatientImporter extends Importer
         return new Patient();
     }
 
+    public static function getOptionsFormComponents(): array
+    {
+        return [
+            \Filament\Forms\Components\FileUpload::make('file')
+                ->label('ملف الاستيراد')
+                ->acceptedFileTypes([
+                    'text/csv',
+                    'text/plain',
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                ])
+                ->rules(['required', 'file', 'mimes:csv,txt,xls,xlsx'])
+                ->helperText('يمكنك رفع ملفات CSV أو Excel (XLSX/XLS)'),
+        ];
+    }
+
     public static function getCompletedNotificationBody(Import $import): string
     {
         $body = 'تم استيراد ' . number_format($import->successful_rows) . ' مريض بنجاح.';
