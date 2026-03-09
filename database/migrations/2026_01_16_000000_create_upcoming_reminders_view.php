@@ -10,6 +10,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        DB::statement('DROP VIEW IF EXISTS upcoming_reminders_view');
+
         DB::statement("
             CREATE VIEW upcoming_reminders_view AS
 

@@ -2,43 +2,27 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-
         $this->call([
-            RoleSeeder::class,              // 1. أولاً
-            UserSeeder::class,              // 2. ثانياً (يحتاج roles)
-            ChronicDiseaseSeeder::class,    // 3. القواميس
-            MedicationSeeder::class,        // 4. القواميس
-            DiagnosisSeeder::class,         // 5. القواميس
-            MedicalAbbreviationSeeder::class, // 6. القواميس
-            AppointmentTypeSeeder::class, // انواع الزيارات مناظير / عيادة /مشفى
-
-            PatientSeeder::class,           // 7. المرضى (يحتاج users + قواميس)
-            VisitSeeder::class,             // 8. أخيراً (يحتاج patients)
-            // ImagingStudySeeder تم حذفه - استخدم AttachmentTypeSeeder
-            LabTestSeeder::class,
-            AppointmentSeeder::class, // المواعيد
-
+            RoleSeeder::class,               // 1. الصلاحيات
+            UserSeeder::class,               // 2. المستخدمون
+            ChronicDiseaseSeeder::class,     // 3. الأمراض المزمنة
+            MedicationSeeder::class,         // 4. الأدوية
+            DiagnosisSeeder::class,          // 5. التشخيصات
+            MedicalAbbreviationSeeder::class,// 6. الاختصارات الطبية
+            AppointmentTypeSeeder::class,    // 7. أنواع المواعيد
+            LabTestSeeder::class,            // 8. التحاليل المخبرية
+            EndoscopyProcedureSeeder::class, // 9. إجراءات المنظار
         ]);
 
-        $this->command->info('✅ تم إضافة جميع البيانات التجريبية بنجاح!');
+        $this->command->info('✅ تم تجهيز البيانات الأساسية بنجاح!');
     }
 }
