@@ -248,7 +248,6 @@ class ViewVisit extends ViewRecord
                 'patient',
                 'referringDoctor',
                 'creator',
-                'complaintSymptom',
                 'timeline',
                 'medicalAttachment',
                 'clinicalExamination',

@@ -65,14 +65,6 @@ class CreateVisit extends CreateRecord
             );
         }
 
-        // حفظ الشكاية والأعراض
-        if (isset($data['complaintSymptom']) && !empty(array_filter($data['complaintSymptom']))) {
-            $visit->complaintSymptom()->create($data['complaintSymptom']);
-        }
-
-        // حفظ الشكاية المنظمة (النظام الجديد) - يتم حفظها في حقل JSON في جدول visits مباشرة
-        // لا حاجة لحفظها هنا، Laravel يحفظها تلقائياً من خلال $fillable و $casts
-
         // حفظ الخط الزمني
         if (isset($data['timeline']) && !empty(array_filter($data['timeline']))) {
             $visit->timeline()->create($data['timeline']);

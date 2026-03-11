@@ -240,12 +240,6 @@ class Visit extends Model
         ->withTimestamps();
     }
 
-    // العلاقات الجديدة للواجهات الأربعة
-    public function complaintSymptom()
-    {
-        return $this->hasOne(VisitComplaintSymptom::class);
-    }
-
     public function timeline()
     {
         return $this->hasOne(VisitTimeline::class);

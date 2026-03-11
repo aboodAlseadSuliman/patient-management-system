@@ -13,7 +13,7 @@ class OrganizedComplaintTab
 {
     public static function make(): Tab
     {
-        return Tab::make('الشكاية المنظمة (تجريبي)')
+        return Tab::make('الشكاية المنظمة ')
             ->icon('heroicon-o-clipboard-document-list')
             ->badge(fn($get) => $get('organized_complaint.organ') ? '✓' : null)
             ->badgeColor('success')

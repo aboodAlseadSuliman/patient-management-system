@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 
 class UsersTable
 {
@@ -60,6 +62,22 @@ class UsersTable
                 //
             ])
             ->recordActions([
+                Action::make('toggleActive')
+                    ->label(fn($record) => $record->is_active ? 'تعطيل' : 'تنشيط')
+                    ->icon(fn($record) => $record->is_active ? 'heroicon-o-no-symbol' : 'heroicon-o-check-circle')
+                    ->color(fn($record) => $record->is_active ? 'danger' : 'success')
+                    ->requiresConfirmation()
+                    ->modalHeading(fn($record) => $record->is_active ? 'تعطيل المستخدم' : 'تنشيط المستخدم')
+                    ->modalDescription(fn($record) => $record->is_active
+                        ? "هل تريد تعطيل حساب ({$record->name})؟ لن يتمكن من تسجيل الدخول."
+                        : "هل تريد تنشيط حساب ({$record->name})؟"
+                    )
+                    ->modalSubmitActionLabel(fn($record) => $record->is_active ? 'تعطيل' : 'تنشيط')
+                    ->visible(fn() => Auth::user()?->isAdmin())
+                    ->action(function ($record) {
+                        $record->update(['is_active' => !$record->is_active]);
+                    }),
+
                 EditAction::make(),
             ])
             ->toolbarActions([

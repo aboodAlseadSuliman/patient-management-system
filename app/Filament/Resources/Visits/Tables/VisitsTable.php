@@ -78,11 +78,20 @@ class VisitsTable
                         default => 'gray',
                     }),
 
-                // الشكوى الرئيسية (من جدول visit_complaint_symptoms)
-                TextColumn::make('complaintSymptom.chief_complaint')
-                    ->label('الشكوى الرئيسية')
-                    ->limit(50)
-                    ->searchable()
+                // العضو المصاب (من الشكاية المنظمة)
+                TextColumn::make('organized_complaint')
+                    ->label('العضو المصاب')
+                    ->formatStateUsing(fn ($state) => match (data_get($state, 'organ')) {
+                        'esophagus'  => 'المريء',
+                        'stomach'    => 'المعدة',
+                        'intestines' => 'الأمعاء والكولون',
+                        'rectum'     => 'المستقيم والشرج',
+                        'liver'      => 'الكبد والطرق الصفراوية',
+                        'pancreas'   => 'البنكرياس',
+                        'other'      => 'أعضاء أخرى',
+                        default      => '-',
+                    })
+                    ->badge()
                     ->toggleable()
                     ->placeholder('-'),
 

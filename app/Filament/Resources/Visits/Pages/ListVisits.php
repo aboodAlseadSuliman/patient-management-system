@@ -26,7 +26,6 @@ class ListVisits extends ListRecords
         return parent::getTableQuery()
             ->with([
                 'patient',
-                'complaintSymptom',
                 'followup',
                 'creator',
                 'updater',

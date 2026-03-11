@@ -90,23 +90,21 @@ class VisitInfolist
                 Section::make('الشكاية والأعراض')
                     ->icon('heroicon-o-clipboard-document-list')
                     ->schema([
-                        TextEntry::make('complaintSymptom.chief_complaint')
-                            ->label('الشكوى الرئيسية')
-                            ->icon('heroicon-o-exclamation-circle')
-                            ->placeholder('لا توجد شكوى مسجلة')
-                            ->markdown()
-                            ->columnSpanFull(),
-
-                        TextEntry::make('complaintSymptom.complaint_characteristics')
-                            ->label('مواصفات الشكاية')
-                            ->placeholder('لا توجد مواصفات')
-                            ->markdown()
-                            ->columnSpanFull(),
-
-                        TextEntry::make('complaintSymptom.associated_symptoms')
-                            ->label('الأعراض المصاحبة')
-                            ->placeholder('لا توجد أعراض مصاحبة')
-                            ->markdown()
+                        TextEntry::make('organized_complaint.organ')
+                            ->label('العضو المصاب')
+                            ->icon('heroicon-o-map-pin')
+                            ->placeholder('لم يُحدد')
+                            ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                'esophagus'  => 'المريء',
+                                'stomach'    => 'المعدة',
+                                'intestines' => 'الأمعاء والكولون',
+                                'rectum'     => 'المستقيم والشرج',
+                                'liver'      => 'الكبد والطرق الصفراوية',
+                                'pancreas'   => 'البنكرياس',
+                                'other'      => 'أعضاء أخرى',
+                                default      => $state ?? '-',
+                            })
+                            ->badge()
                             ->columnSpanFull(),
                     ])
                     ->collapsible()

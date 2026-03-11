@@ -31,7 +31,6 @@ class EditVisit extends EditRecord
         return parent::resolveRecord($key)->load([
             'patient',
             'referringDoctor',
-            'complaintSymptom',
             'timeline',
             'clinicalExamination',
             'treatmentPlan',
@@ -51,11 +50,6 @@ class EditVisit extends EditRecord
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $visit = $this->record;
-
-        // تحميل بيانات الشكاية والأعراض
-        if ($visit->complaintSymptom) {
-            $data['complaintSymptom'] = $visit->complaintSymptom->toArray();
-        }
 
         // تحميل بيانات الخط الزمني
         if ($visit->timeline) {
@@ -188,13 +182,6 @@ class EditVisit extends EditRecord
         }
 
         // تحديث أو إنشاء الشكاية والأعراض
-        if (isset($data['complaintSymptom'])) {
-            $visit->complaintSymptom()->updateOrCreate(
-                ['visit_id' => $visit->id],
-                $data['complaintSymptom']
-            );
-        }
-
         // تحديث أو إنشاء الخط الزمني
         if (isset($data['timeline'])) {
             $visit->timeline()->updateOrCreate(

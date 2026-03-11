@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Visits\Schemas;
 
-use App\Filament\Resources\Visits\Schemas\DetailedVisit\InfolistTabs\ComplaintSymptomInfoTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\InfolistTabs\TimelineInfoTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\InfolistTabs\MedicalAttachmentInfoTab;
 use App\Filament\Resources\Visits\Schemas\DetailedVisit\InfolistTabs\ClinicalExaminationInfoTab;
@@ -115,7 +114,6 @@ class VisitInfolistTabs
                             ]),
 
                         // ==================== التابات التفصيلية ====================
-                        ComplaintSymptomInfoTab::make(),
                         TimelineInfoTab::make(),
                         MedicalAttachmentInfoTab::make(),
                         ClinicalExaminationInfoTab::make(),
