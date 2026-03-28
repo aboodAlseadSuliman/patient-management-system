@@ -25,17 +25,21 @@ class ListPatients extends ListRecords
                         'المرضى-' . date('Y-m-d') . '.xlsx'
                     );
                 }),
-            \Filament\Actions\Action::make('direct_import')
-                ->label('استيراد Excel')
+            \Filament\Actions\Action::make('import_old_records')
+                ->label('استيراد سجلات قديمة')
                 ->icon('heroicon-o-arrow-up-tray')
-                ->color('info')
+                ->color('warning')
                 ->fillForm(fn () => [])
-                ->modalHeading('استيراد ملف المرضى')
-                ->modalDescription('اختر ملف Excel أو CSV لاستيراد بيانات المرضى')
-                ->modalSubmitActionLabel('استيراد')
+                ->modalHeading('استيراد السجلات القديمة')
+                ->modalDescription(new \Illuminate\Support\HtmlString(
+                    'يدعم هذا الاستيراد الملفات بالتنسيق التالي:<br>' .
+                    '<strong>التسلسل | الأسبوع | التاريخ | الاسم | التولد | الملف | السكن | الهاتف</strong><br>' .
+                    '<small>يجب أن يكون السطر الأول عناوين الأعمدة.</small>'
+                ))
+                ->modalSubmitActionLabel('بدء الاستيراد')
                 ->schema([
                     \Filament\Forms\Components\FileUpload::make('file')
-                        ->label('ملف الاستيراد')
+                        ->label('ملف Excel')
                         ->disk('local')
                         ->directory('temp-imports')
                         ->visibility('private')
@@ -45,34 +49,37 @@ class ListPatients extends ListRecords
                             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                         ])
                         ->required()
-                        ->helperText('يمكنك رفع ملفات CSV أو Excel (XLSX/XLS)'),
+                        ->helperText('رفع ملف XLSX أو XLS أو CSV'),
                 ])
                 ->action(function (array $data) {
                     try {
-                        // استخدام Storage facade للوصول إلى الملف
                         $disk = \Illuminate\Support\Facades\Storage::disk('local');
                         $filePath = $disk->path($data['file']);
 
-                        // التحقق من وجود الملف
                         if (!file_exists($filePath)) {
-                            throw new \Exception('الملف غير موجود في المسار: ' . $filePath);
+                            throw new \Exception('الملف غير موجود.');
                         }
 
-                        $import = new \App\Imports\PatientsImport();
+                        // قراءة عدد الأوراق الفعلي في الملف
+                        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($filePath);
+                        $sheetCount  = $spreadsheet->getSheetCount();
+                        unset($spreadsheet); // تحرير الذاكرة
+
+                        $import = new \App\Imports\PatientsOldRecordsImport($sheetCount);
                         \Maatwebsite\Excel\Facades\Excel::import($import, $filePath);
 
-                        // حذف الملف المؤقت
                         $disk->delete($data['file']);
 
                         \Filament\Notifications\Notification::make()
-                            ->title('تم الاستيراد بنجاح')
-                            ->body('تم استيراد بيانات المرضى بنجاح')
+                            ->title('تم الاستيراد')
+                            ->body("تم استيراد {$import->importedCount} سجل - تم تخطي {$import->skippedCount} سجل مكرر أو فارغ")
                             ->success()
+                            ->duration(8000)
                             ->send();
 
                     } catch (\Exception $e) {
                         \Filament\Notifications\Notification::make()
-                            ->title('فشل الاستيراد')
+                            ->title('خطأ في الاستيراد')
                             ->body($e->getMessage())
                             ->danger()
                             ->send();
