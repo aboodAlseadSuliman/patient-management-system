@@ -24,6 +24,12 @@ class LabTestResource extends Resource
 {
     protected static ?string $model = LabTest::class;
 
+    
+    public static function canViewAny(): bool
+    {
+        return !auth()->user()?->isStaff();
+    }
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBeaker;
 
     protected static ?string $recordTitleAttribute = 'name_ar';

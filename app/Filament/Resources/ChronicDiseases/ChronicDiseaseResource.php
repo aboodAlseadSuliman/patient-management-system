@@ -26,6 +26,12 @@ class ChronicDiseaseResource extends Resource
 {
     protected static ?string $model = ChronicDisease::class;
 
+    
+    public static function canViewAny(): bool
+    {
+        return !auth()->user()?->isStaff();
+    }
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHeart;
     protected static ?string $recordTitleAttribute = 'name_ar';
 

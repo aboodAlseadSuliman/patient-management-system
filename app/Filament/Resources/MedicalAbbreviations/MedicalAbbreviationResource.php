@@ -26,6 +26,12 @@ class MedicalAbbreviationResource extends Resource
 {
     protected static ?string $model = MedicalAbbreviation::class;
 
+    
+    public static function canViewAny(): bool
+    {
+        return !auth()->user()?->isStaff();
+    }
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeftRight;
     protected static ?string $recordTitleAttribute = 'abbreviation';
 

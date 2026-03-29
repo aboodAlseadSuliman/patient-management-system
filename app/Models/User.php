@@ -37,7 +37,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return in_array($this->role->name, ['admin', 'doctor']) && $this->is_active;
+        return in_array($this->role->name, ['admin', 'doctor', 'staff']) && $this->is_active;
     }
 
     // ==================== Relationships ====================
@@ -77,6 +77,11 @@ class User extends Authenticatable implements FilamentUser
     public function isDoctorOrAdmin(): bool
     {
         return in_array($this->role->name, ['admin', 'doctor']);
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->role->name === 'staff';
     }
 
     // ==================== Scopes ====================

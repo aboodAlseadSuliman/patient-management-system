@@ -22,6 +22,12 @@ class VisitResource extends Resource
 {
     protected static ?string $model = Visit::class;
 
+    
+    public static function canViewAny(): bool
+    {
+        return !auth()->user()?->isStaff();
+    }
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 
     protected static ?string $navigationLabel = 'الزيارات';

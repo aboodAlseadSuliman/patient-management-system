@@ -27,6 +27,12 @@ class MedicationResource extends Resource
 {
     protected static ?string $model = Medication::class;
 
+    
+    public static function canViewAny(): bool
+    {
+        return !auth()->user()?->isStaff();
+    }
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBeaker;
     protected static ?string $recordTitleAttribute = 'name_ar';
 

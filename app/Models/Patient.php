@@ -69,9 +69,26 @@ class Patient extends Model
 
 
 
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
     protected static function boot()
     {
         parent::boot();
+
+        // عند حذف مريض: حذف جميع السجلات المرتبطة
+        static::deleting(function ($patient) {
+            // حذف الزيارات (مما سيُشغّل حدث حذف الزيارة بدوره)
+            $patient->visits()->each(fn($visit) => $visit->delete());
+            // حذف المواعيد المرتبطة بالمريض مباشرة
+            $patient->appointments()->each(fn($appointment) => $appointment->delete());
+            // حذف استشارات المستشفى
+            $patient->hospitalConsultations()->each(fn($hc) => $hc->delete());
+            // حذف إجراءات التنظير
+            $patient->endoscopyProcedures()->each(fn($ep) => $ep->delete());
+        });
 
         // عند إنشاء مريض جديد
         static::creating(function ($patient) {

@@ -22,6 +22,12 @@ class HospitalConsultationResource extends Resource
 {
     protected static ?string $model = HospitalConsultation::class;
 
+    
+    public static function canViewAny(): bool
+    {
+        return !auth()->user()?->isStaff();
+    }
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $navigationLabel = 'معاينات المشفى';

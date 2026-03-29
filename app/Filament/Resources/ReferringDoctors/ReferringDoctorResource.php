@@ -18,6 +18,12 @@ class ReferringDoctorResource extends Resource
 {
     protected static ?string $model = ReferringDoctor::class;
 
+    
+    public static function canViewAny(): bool
+    {
+        return !auth()->user()?->isStaff();
+    }
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $navigationLabel = 'الأطباء المحولين';

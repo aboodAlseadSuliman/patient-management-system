@@ -186,9 +186,24 @@ class Visit extends Model
     // }
 
 
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
     protected static function boot()
     {
         parent::boot();
+
+        // عند حذف زيارة: حذف جميع السجلات المرتبطة
+        static::deleting(function ($visit) {
+            // حذف المواعيد المرتبطة بالزيارة
+            $visit->appointments()->each(fn($appointment) => $appointment->delete());
+            // حذف متابعة الزيارة (تؤثر على تذكيرات المتابعة)
+            $visit->followup()->delete();
+            // حذف طلبات الباثولوجيا (تؤثر على تذكيرات الباثولوجيا)
+            $visit->pathologyRequests()->delete();
+        });
 
         static::creating(function ($visit) {
             if (!$visit->visit_number) {
