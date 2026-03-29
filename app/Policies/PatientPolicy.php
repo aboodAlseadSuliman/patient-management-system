@@ -12,8 +12,7 @@ class PatientPolicy
      */
     public function viewAny(User $user): bool
     {
-        // Admin و Doctor يستطيعون رؤية المرضى
-        return $user->isDoctorOrAdmin();
+        return $user->isDoctorOrAdmin() || $user->isStaff();
     }
 
     /**
@@ -21,8 +20,7 @@ class PatientPolicy
      */
     public function view(User $user, Patient $patient): bool
     {
-        // Admin يرى الكل
-        if ($user->isAdmin()) {
+        if ($user->isAdmin() || $user->isStaff()) {
             return true;
         }
 
@@ -39,8 +37,7 @@ class PatientPolicy
      */
     public function create(User $user): bool
     {
-        // Admin و Doctor يستطيعون إضافة مرضى
-        return $user->isDoctorOrAdmin();
+        return $user->isDoctorOrAdmin() || $user->isStaff();
     }
 
     /**
@@ -48,8 +45,7 @@ class PatientPolicy
      */
     public function update(User $user, Patient $patient): bool
     {
-        // Admin يعدل الكل
-        if ($user->isAdmin()) {
+        if ($user->isAdmin() || $user->isStaff()) {
             return true;
         }
 
